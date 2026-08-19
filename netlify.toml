@@ -1,0 +1,10 @@
+# Netlify Build Configuration
+[build]
+  command = "npm run build"
+  publish = "dist"
+
+# Single Page Application SPA Fallback Rule
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
