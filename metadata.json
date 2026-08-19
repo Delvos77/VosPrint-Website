@@ -1,0 +1,6 @@
+{
+  "name": "CetakInstan - Katalog & Kalkulator Percetakan",
+  "description": "Aplikasi katalog, kalkulator harga custom cetak real-time, dan pemesanan jasa percetakan online langsung terintegrasi WhatsApp.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
