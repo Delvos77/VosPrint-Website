@@ -24,6 +24,7 @@ interface NavbarProps {
   toggleRole: () => void;
   onOpenAdminPinModal?: () => void;
   onOpenAdminSecurityModal?: () => void;
+  showAdminLock?: boolean;
 
   // Store Hours
   storeHours?: StoreHours;
@@ -45,6 +46,7 @@ export default function Navbar({
   toggleRole,
   onOpenAdminPinModal,
   onOpenAdminSecurityModal,
+  showAdminLock = true,
   storeHours,
   onOpenEditStoreHours
 }: NavbarProps) {
@@ -138,7 +140,7 @@ export default function Navbar({
                   </button>
                 )}
               </div>
-            ) : (
+            ) : showAdminLock ? (
               <button
                 onClick={onOpenAdminPinModal}
                 id="admin-login-lock-btn"
@@ -147,7 +149,7 @@ export default function Navbar({
               >
                 <Lock className="h-4 w-4" />
               </button>
-            )}
+            ) : null}
 
             {/* Dark/Light Mode Switcher */}
             <button

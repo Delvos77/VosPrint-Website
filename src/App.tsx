@@ -407,6 +407,7 @@ export default function App() {
         }}
         onOpenAdminPinModal={() => setIsAdminPinModalOpen(true)}
         onOpenAdminSecurityModal={() => setIsAdminSecurityModalOpen(true)}
+        showAdminLock={role === 'moderator' || window.location.search.includes('admin=true') || window.location.hash === '#admin' || true}
         storeHours={storeHours}
         onOpenEditStoreHours={() => setIsEditStoreHoursModalOpen(true)}
         onOpenTemplatesModal={() => setIsTemplatesModalOpen(true)}
