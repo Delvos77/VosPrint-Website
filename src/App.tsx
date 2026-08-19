@@ -234,13 +234,11 @@ export default function App() {
   const handleDeleteProduct = (productId: string) => {
     const target = productsDb.find((p) => p.id === productId);
     const prodName = target ? target.name : 'Jasa cetak';
-    if (window.confirm(`Apakah Anda yakin ingin menghapus "${prodName}" dari katalog database? Jasa ini tidak akan tersedia lagi di aplikasi.`)) {
-      setProductsDb((prev) => prev.filter((p) => p.id !== productId));
-      if (activeAdminEditProduct?.id === productId) {
-        setActiveAdminEditProduct(null);
-      }
-      showToast(`Katalog jasa "${prodName}" berhasil dihapus dari database!`, 'info');
+    setProductsDb((prev) => prev.filter((p) => p.id !== productId));
+    if (activeAdminEditProduct?.id === productId) {
+      setActiveAdminEditProduct(null);
     }
+    showToast(`Katalog jasa "${prodName}" berhasil dihapus dari database!`, 'info');
   };
 
   const handleSaveMaterials = (productId: string, updatedMaterials: any[]) => {
@@ -663,6 +661,7 @@ export default function App() {
       {isTemplatesModalOpen && (
         <DesignTemplatesModal
           products={productsDb}
+          role={role}
           onClose={() => setIsTemplatesModalOpen(false)}
           onSelectTemplate={(tpl, matchedProd) => {
             setPickedTemplate({ tpl, prod: matchedProd });

@@ -115,11 +115,11 @@ export interface OrderRecord {
 export interface DesignTemplate {
   id: string;
   title: string;
-  category: ProductCategory;
+  category?: ProductCategory;
   imageUrl: string;
   description: string;
   tags: string[];
-  suggestedProduct: string;
+  suggestedProduct?: string;
 }
 
 export interface WholesaleTier {

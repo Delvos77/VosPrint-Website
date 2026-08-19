@@ -62,6 +62,19 @@ export default function AdminProductEditor({ product, onClose, onSave, onDeleteP
   const [newFinDesc, setNewFinDesc] = useState('');
   const [newFinIsPerUnit, setNewFinIsPerUnit] = useState(true);
 
+  // State for deleting product confirmation modal
+  const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false);
+
+  // Clear all materials
+  const handleClearAllMaterials = () => {
+    setMaterials([]);
+  };
+
+  // Clear all finishings
+  const handleClearAllFinishings = () => {
+    setFinishings([]);
+  };
+
   // State for adding a new pages row to the pricing grid
   const [newPageNumber, setNewPageNumber] = useState<number>(320);
 
@@ -641,9 +654,21 @@ export default function AdminProductEditor({ product, onClose, onSave, onDeleteP
 
               {/* 2b. List Bahan Saat Ini */}
               <div className="space-y-2">
-                <label className="block text-xs font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500">
-                  Daftar Bahan Yang Tersedia ({materials.length})
-                </label>
+                <div className="flex items-center justify-between">
+                  <label className="block text-xs font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500">
+                    Daftar Bahan Yang Tersedia ({materials.length})
+                  </label>
+                  {materials.length > 0 && (
+                    <button
+                      type="button"
+                      onClick={handleClearAllMaterials}
+                      className="inline-flex items-center space-x-1 text-red-500 hover:text-red-400 bg-red-500/10 hover:bg-red-500/20 px-2.5 py-1 rounded-lg text-xs font-bold transition"
+                    >
+                      <Trash2 className="h-3.5 w-3.5" />
+                      <span>Hapus Semua Bahan</span>
+                    </button>
+                  )}
+                </div>
 
                 {materials.length > 0 ? (
                   <div className="space-y-2" id="admin-materials-edit-list">
@@ -771,9 +796,21 @@ export default function AdminProductEditor({ product, onClose, onSave, onDeleteP
 
               {/* 3b. List Finishing Saat Ini */}
               <div className="space-y-2">
-                <label className="block text-xs font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500">
-                  Daftar Finishing Yang Tersedia ({finishings.length})
-                </label>
+                <div className="flex items-center justify-between">
+                  <label className="block text-xs font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500">
+                    Daftar Finishing Yang Tersedia ({finishings.length})
+                  </label>
+                  {finishings.length > 0 && (
+                    <button
+                      type="button"
+                      onClick={handleClearAllFinishings}
+                      className="inline-flex items-center space-x-1 text-red-500 hover:text-red-400 bg-red-500/10 hover:bg-red-500/20 px-2.5 py-1 rounded-lg text-xs font-bold transition"
+                    >
+                      <Trash2 className="h-3.5 w-3.5" />
+                      <span>Hapus Semua Finishing</span>
+                    </button>
+                  )}
+                </div>
 
                 {finishings.length > 0 ? (
                   <div className="space-y-2" id="admin-finishings-edit-list">
@@ -966,8 +1003,7 @@ export default function AdminProductEditor({ product, onClose, onSave, onDeleteP
                 <button
                   type="button"
                   onClick={() => {
-                    onClose();
-                    onDeleteProduct(product.id);
+                    setIsDeleteConfirmOpen(true);
                   }}
                   className="flex items-center space-x-1.5 rounded-lg border border-red-200 dark:border-red-900/50 bg-red-50 dark:bg-red-950/30 text-red-600 dark:text-red-400 hover:bg-red-600 hover:text-white dark:hover:bg-red-600 dark:hover:text-white px-3.5 py-2.5 text-xs font-bold transition shadow-2xs"
                   title="Hapus jasa cetak ini secara permanen dari katalog"
@@ -998,6 +1034,46 @@ export default function AdminProductEditor({ product, onClose, onSave, onDeleteP
           </div>
         </form>
       </div>
+
+      {/* MODAL KONFIRMASI HAPUS JASA */}
+      {isDeleteConfirmOpen && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/80 backdrop-blur-xs animate-fade-in">
+          <div className="w-full max-w-md bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-2xl text-center space-y-4">
+            <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-red-500/10 text-red-500 border border-red-500/20">
+              <Trash2 className="h-6 w-6" />
+            </div>
+            <div>
+              <h3 className="text-base font-extrabold text-white">Hapus Jasa Cetak Ini?</h3>
+              <p className="text-xs text-slate-400 mt-1.5 leading-relaxed">
+                Apakah Anda yakin ingin menghapus jasa <strong className="text-red-400">"{productName}"</strong> secara permanen dari database katalog?
+              </p>
+            </div>
+            <div className="flex items-center space-x-2 pt-2">
+              <button
+                type="button"
+                onClick={() => setIsDeleteConfirmOpen(false)}
+                className="flex-1 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold text-xs py-3 transition"
+              >
+                Batal
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setIsDeleteConfirmOpen(false);
+                  if (onDeleteProduct) {
+                    onDeleteProduct(product.id);
+                  }
+                  onClose();
+                }}
+                className="flex-1 rounded-xl bg-red-600 hover:bg-red-500 text-white font-black text-xs py-3 transition shadow-md flex items-center justify-center space-x-1.5"
+              >
+                <Trash2 className="h-4 w-4" />
+                <span>Ya, Hapus Jasa</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
