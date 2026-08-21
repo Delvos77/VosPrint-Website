@@ -105,7 +105,7 @@ export default function App() {
 
   // 1.1. New Customization & Role States
   const [theme, setTheme] = useState<'light' | 'dark'>(() => {
-    return (localStorage.getItem('cetakinstan_theme') as 'light' | 'dark') || 'light';
+    return (localStorage.getItem('cetakinstan_theme') as 'light' | 'dark') || 'dark';
   });
   
   const [role, setRole] = useState<'buyer' | 'moderator'>(() => {
@@ -381,7 +381,7 @@ export default function App() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-800 dark:bg-slate-950 dark:text-slate-100 flex flex-col font-sans transition-colors duration-200" id="app-root">
+    <div className="min-h-screen bg-[#090a0d] text-white flex flex-col font-sans transition-colors duration-200" id="app-root">
       
       {/* 1. Header & Navigation (Adaptif) */}
       <Navbar
@@ -412,88 +412,94 @@ export default function App() {
       />
 
       {/* 2. Main Content Area */}
-      <main className="flex-1 pb-24 md:pb-12" id="main-content-layout">
+      <main className="flex-1 pb-24 md:pb-16" id="main-content-layout">
         
         {/* TAB CATALOG */}
         {currentTab === 'catalog' && (
           <div className="animate-fade-in" id="catalog-tab-view">
             
-            {/* ====== BANNER HERO / PROMO PERCETAKAN ====== */}
-            <section className="relative overflow-hidden bg-slate-900 text-white py-12 px-4 md:py-16 md:px-6" id="hero-banner">
-              {/* Decorative abstract circle background */}
-              <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] rounded-full bg-amber-500/10 blur-3xl -z-10"></div>
+            {/* ====== BANNER HERO / POWERHOUSE STUDIO ====== */}
+            <section className="relative overflow-hidden pt-12 pb-16 px-4 md:pt-20 md:pb-24 text-center border-b border-white/5" id="hero-banner">
+              {/* Glow Ambient */}
+              <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-4xl h-96 bg-gradient-to-b from-amber-500/10 via-amber-500/5 to-transparent blur-3xl -z-10 pointer-events-none" />
               
-              <div className="mx-auto max-w-7xl grid grid-cols-1 md:grid-cols-12 gap-8 items-center">
-                <div className="md:col-span-7 space-y-4 text-center md:text-left" id="hero-text-container">
-                  <span className="inline-flex items-center space-x-1.5 rounded-full bg-amber-400/10 px-3 py-1 text-xs font-bold text-amber-400">
-                    <Sparkles className="h-3.5 w-3.5" />
-                    <span>Layanan Cetak Kilat Terpercaya</span>
-                  </span>
-                  
-                  <h2 className="text-3xl font-extrabold tracking-tight text-white md:text-5xl leading-tight">
-                    Cetak Cepat, Hasil Presisi & <span className="text-transparent bg-clip-text bg-gradient-to-r from-amber-400 to-orange-500">Harga Transparan!</span>
-                  </h2>
-                  
-                  <p className="text-xs md:text-sm text-slate-300 max-w-lg leading-relaxed">
-                    Hitung biaya custom cetak secara instan dengan kalkulator real-time kami. File siap cetak akan ditinjau tim professional sebelum diproduksi. Kirim draf pemesanan rapi langsung ke WhatsApp admin!
-                  </p>
+              {/* Stylized background watermark */}
+              <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-[140px] sm:text-[200px] md:text-[280px] font-black text-white/[0.02] tracking-widest select-none pointer-events-none -z-10 uppercase">
+                CETAK
+              </div>
 
-                  {/* Highlights Bar */}
-                  <div className="grid grid-cols-3 gap-3 pt-3 text-left max-w-md mx-auto md:mx-0" id="hero-highlights">
-                    <div className="flex items-center space-x-1.5">
-                      <Award className="h-4 w-4 text-amber-400 shrink-0" />
-                      <span className="text-[10px] font-bold text-slate-200">Hi-Res Quality</span>
-                    </div>
-                    <div className="flex items-center space-x-1.5">
-                      <Truck className="h-4 w-4 text-cyan-400 shrink-0" />
-                      <span className="text-[10px] font-bold text-slate-200">Kirim Kurir</span>
-                    </div>
-                    <div className="flex items-center space-x-1.5">
-                      <CheckCircle2 className="h-4 w-4 text-emerald-400 shrink-0" />
-                      <span className="text-[10px] font-bold text-slate-200">Free File Check</span>
-                    </div>
-                  </div>
+              <div className="mx-auto max-w-4xl space-y-6">
+                <div className="inline-flex items-center space-x-2 rounded-full border border-white/10 bg-white/5 px-3.5 py-1.5 text-xs font-semibold text-neutral-300 backdrop-blur-md">
+                  <span className="flex h-2 w-2 rounded-full bg-emerald-400" />
+                  <span>Workshop Online & Produksi Cepat</span>
                 </div>
+                
+                <h1 className="text-4xl sm:text-6xl md:text-7xl font-extrabold tracking-tight text-white leading-[1.08]">
+                  Percetakan Powerhouse.<br />
+                  <span className="text-neutral-400 font-light">Kualitas Presisi & Kilat.</span>
+                </h1>
+                
+                <p className="mx-auto max-w-2xl text-xs sm:text-sm md:text-base text-neutral-400 leading-relaxed font-normal">
+                  Hitung biaya custom cetak secara instan dengan kalkulator real-time kami. File siap cetak akan ditinjau tim professional sebelum diproduksi. Kirim draf pemesanan rapi langsung ke WhatsApp admin!
+                </p>
 
-                {/* Info Card QR Code WhatsApp (Pengganti Promo) */}
-                <div className="md:col-span-5" id="hero-qr-whatsapp-card">
-                  <WhatsAppQRCard role={role} />
+                {/* Highlights Bar */}
+                <div className="flex flex-wrap items-center justify-center gap-2.5 sm:gap-3 pt-2" id="hero-highlights">
+                  <div className="flex items-center space-x-1.5 rounded-full bg-[#14161b] border border-white/10 px-3.5 py-1.5 text-xs font-medium text-neutral-300 shadow-sm">
+                    <CheckCircle2 className="h-3.5 w-3.5 text-emerald-400 shrink-0" />
+                    <span>Akurasi Warna CMYK</span>
+                  </div>
+                  <div className="flex items-center space-x-1.5 rounded-full bg-[#14161b] border border-white/10 px-3.5 py-1.5 text-xs font-medium text-neutral-300 shadow-sm">
+                    <Sparkles className="h-3.5 w-3.5 text-amber-400 shrink-0" />
+                    <span>Layanan Fast-Track 1 Hari</span>
+                  </div>
+                  <div className="flex items-center space-x-1.5 rounded-full bg-[#14161b] border border-white/10 px-3.5 py-1.5 text-xs font-medium text-neutral-300 shadow-sm">
+                    <Truck className="h-3.5 w-3.5 text-sky-400 shrink-0" />
+                    <span>Kirim Instan & Ekspedisi</span>
+                  </div>
                 </div>
               </div>
             </section>
 
             {/* ====== SEARCH & CATEGORY FILTER ====== */}
-            <section className="mx-auto max-w-7xl px-4 py-8 md:px-6 space-y-6 scroll-mt-20" id="catalog-search-filter">
+            <section className="mx-auto max-w-7xl px-4 py-10 md:px-6 space-y-8 scroll-mt-20" id="catalog-search-filter">
               
-              {/* Search Bar */}
-              <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                <div className="space-y-1">
-                  <h3 className="text-lg font-bold text-slate-900 dark:text-slate-100">Katalog Layanan Cetak</h3>
-                  <p className="text-xs text-slate-500 dark:text-slate-400">Pilih salah satu layanan cetakan di bawah untuk menghitung biaya custom</p>
+              {/* Header Title Bar & Search */}
+              <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
+                <div className="space-y-1.5">
+                  <div className="flex items-center space-x-2.5">
+                    <h2 className="text-xl sm:text-2xl font-black tracking-tight text-white">
+                      Katalog Layanan Cetak
+                    </h2>
+                    <span className="rounded-full bg-white/10 px-2.5 py-0.5 text-xs font-bold text-neutral-300">
+                      {filteredProducts.length} Jasa
+                    </span>
+                  </div>
+                  <p className="text-xs sm:text-sm text-neutral-400">Pilih salah satu layanan cetakan di bawah untuk menghitung biaya custom</p>
                   
                   {role === 'moderator' && (
-                    <div className="mt-2 flex flex-wrap items-center gap-2 rounded-lg bg-red-500/10 border border-red-500/20 px-3 py-1.5 text-[11px] font-bold text-red-600 dark:text-red-400 animate-fade-in" id="moderator-warning-label">
-                      <div className="flex items-center space-x-1">
+                    <div className="mt-3 flex flex-wrap items-center gap-2 rounded-xl bg-red-500/10 border border-red-500/20 px-3.5 py-2 text-xs font-bold text-red-400 animate-fade-in" id="moderator-warning-label">
+                      <div className="flex items-center space-x-1.5">
                         <ShieldAlert className="h-4 w-4 text-red-500" />
                         <span>Mode Admin Aktif - Klik "Edit Harga" untuk menyesuaikan biaya.</span>
                       </div>
                       
-                      <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-2 ml-auto">
                         <button 
                           onClick={handleResetPrices}
-                          className="underline hover:text-red-800 dark:hover:text-red-300 flex items-center space-x-1"
+                          className="underline hover:text-white flex items-center space-x-1"
                           title="Kembalikan semua harga produk ke standard bawaan"
                         >
                           <RotateCcw className="h-3 w-3" />
-                          <span>Reset Database</span>
+                          <span>Reset DB</span>
                         </button>
 
                         <button 
                           onClick={() => setIsCreateProductModalOpen(true)}
-                          className="rounded bg-emerald-600 hover:bg-emerald-500 text-white font-extrabold text-[10px] px-2.5 py-1 flex items-center space-x-1 shadow-sm transition"
+                          className="rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-extrabold text-[11px] px-3 py-1.5 flex items-center space-x-1 shadow-sm transition"
                           title="Tambah jenis jasa cetak baru kustom ke dalam katalog"
                         >
-                          <Plus className="h-3 w-3" />
+                          <Plus className="h-3.5 w-3.5" />
                           <span>Tambah Jasa Baru</span>
                         </button>
                       </div>
@@ -502,19 +508,19 @@ export default function App() {
                 </div>
 
                 <div className="relative w-full md:max-w-xs flex items-center">
-                  <Search className="absolute left-3 h-4 w-4 text-slate-400" />
+                  <Search className="absolute left-3.5 h-4 w-4 text-neutral-500" />
                   <input
                     type="text"
-                    placeholder="Cari layanan cetakan..."
+                    placeholder="Cari layanan atau bahan..."
                     id="search-input-catalog"
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    className="w-full rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 py-2 pl-9 pr-4 text-xs text-slate-850 dark:text-slate-100 focus:border-amber-500 focus:outline-hidden placeholder:text-slate-400 shadow-3xs"
+                    className="w-full rounded-xl border border-white/10 bg-[#14161b] py-2.5 pl-10 pr-4 text-xs sm:text-sm text-white focus:border-white/30 focus:outline-hidden placeholder:text-neutral-500 shadow-inner"
                   />
                 </div>
               </div>
 
-              {/* Categories horizontal pill lists */}
+              {/* Categories horizontal pill lists (Dark Minimal Style) */}
               <div className="flex overflow-x-auto pb-2 scrollbar-none gap-2" id="category-pills">
                 {categories.map((cat) => {
                   const Icon = cat.icon;
@@ -524,10 +530,10 @@ export default function App() {
                       key={cat.id}
                       id={`cat-pill-${cat.id}`}
                       onClick={() => setActiveCategory(cat.id)}
-                      className={`flex items-center space-x-1.5 rounded-full border px-4 py-2 text-xs font-bold transition shrink-0 ${
+                      className={`flex items-center space-x-2 rounded-full border px-4 py-2 text-xs font-bold transition shrink-0 ${
                         isActive
-                          ? 'border-slate-900 bg-slate-900 dark:border-slate-800 dark:bg-slate-800 text-white shadow-md'
-                          : 'border-slate-200 bg-white text-slate-600 hover:bg-slate-50 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-400 dark:hover:bg-slate-800'
+                          ? 'border-white bg-white text-black shadow-lg'
+                          : 'border-white/10 bg-[#121316] text-neutral-300 hover:bg-[#1a1d24] hover:text-white'
                       }`}
                     >
                       <Icon className="h-3.5 w-3.5" />
@@ -537,11 +543,11 @@ export default function App() {
                 })}
               </div>
 
-              {/* ====== PRODUCTS GRID (1 to 4 cols) ====== */}
+              {/* ====== PRODUCTS GRID (Spacious 3-Column Showcase matching reference image) ====== */}
               {filteredProducts.length > 0 ? (
                 <div 
                   id="products-catalog-grid"
-                  className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-5"
+                  className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-7"
                 >
                   {filteredProducts.map((p) => (
                     <ProductCard
@@ -556,12 +562,12 @@ export default function App() {
                   ))}
                 </div>
               ) : (
-                <div className="flex flex-col items-center justify-center py-12 text-center border border-dashed border-slate-200 dark:border-slate-800 rounded-2xl bg-white dark:bg-slate-900/50" id="no-search-results">
-                  <p className="text-sm font-bold text-slate-850 dark:text-slate-200">Layanan cetakan tidak ditemukan</p>
-                  <p className="text-xs text-slate-500 mt-1 dark:text-slate-400">Coba gunakan kata kunci pencarian lain atau pilih kategori Semua Jasa.</p>
+                <div className="flex flex-col items-center justify-center py-16 text-center border border-dashed border-white/10 rounded-2xl bg-[#121316]/50" id="no-search-results">
+                  <p className="text-sm font-bold text-neutral-200">Layanan cetakan tidak ditemukan</p>
+                  <p className="text-xs text-neutral-400 mt-1">Coba gunakan kata kunci pencarian lain atau pilih kategori Semua Jasa.</p>
                   <button
                     onClick={() => { setSearchQuery(''); setActiveCategory('all'); }}
-                    className="mt-3.5 rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 px-3 py-1.5 text-xs font-semibold text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-950 transition"
+                    className="mt-4 rounded-xl border border-white/10 bg-[#1c1f26] px-4 py-2 text-xs font-bold text-white hover:bg-[#252a34] transition"
                   >
                     Reset Filter
                   </button>

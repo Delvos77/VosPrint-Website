@@ -17,7 +17,8 @@ export const PRODUCTS: Product[] = [
     unit: 'm²',
     minQty: 1, // minimal 1 m²
     pricingType: 'area',
-    imageGradient: 'from-blue-600 to-cyan-500',
+    imageGradient: 'from-slate-900 via-neutral-900 to-slate-800',
+    customImageUrl: 'https://images.unsplash.com/photo-1541701494587-cb58502866ab?auto=format&fit=crop&w=800&q=80',
     iconName: 'Image',
     materials: [
       { id: 'flexi-280', name: 'Flexi Standard 280gr', extraPrice: 0 },
@@ -40,7 +41,8 @@ export const PRODUCTS: Product[] = [
     unit: 'lembar A3+',
     minQty: 5, // minimal 5 lembar A3+
     pricingType: 'sheet',
-    imageGradient: 'from-amber-500 to-orange-600',
+    imageGradient: 'from-neutral-900 to-stone-900',
+    customImageUrl: 'https://images.unsplash.com/photo-1589939705384-5185137a7f0f?auto=format&fit=crop&w=800&q=80',
     iconName: 'Layers',
     materials: [
       { id: 'chromo', name: 'Stiker Chromo (Bahan Kertas, Semi-Glossy)', extraPrice: 0 },
@@ -65,7 +67,8 @@ export const PRODUCTS: Product[] = [
     unit: 'pack (100 lbr)',
     minQty: 1, // minimal 1 pack
     pricingType: 'box',
-    imageGradient: 'from-emerald-600 to-teal-500',
+    imageGradient: 'from-stone-900 to-zinc-900',
+    customImageUrl: 'https://images.unsplash.com/photo-1563986768609-322da13575f3?auto=format&fit=crop&w=800&q=80',
     iconName: 'FileText',
     materials: [
       { id: 'art-paper-120', name: 'Art Paper 120gr (Standard Brosur)', extraPrice: 0 },
@@ -88,7 +91,8 @@ export const PRODUCTS: Product[] = [
     unit: 'box (100 lbr)',
     minQty: 1, // minimal 1 box
     pricingType: 'box',
-    imageGradient: 'from-indigo-600 to-purple-500',
+    imageGradient: 'from-zinc-950 via-slate-900 to-black',
+    customImageUrl: 'https://images.unsplash.com/photo-1589829545856-d10d557cf95f?auto=format&fit=crop&w=800&q=80',
     iconName: 'CreditCard',
     materials: [
       { id: 'ac-260', name: 'Art Carton 260gr (Standard)', extraPrice: 0 },
@@ -111,7 +115,8 @@ export const PRODUCTS: Product[] = [
     unit: 'set',
     minQty: 1, // minimal 1 set
     pricingType: 'fixed',
-    imageGradient: 'from-rose-600 to-pink-500',
+    imageGradient: 'from-neutral-900 to-zinc-900',
+    customImageUrl: 'https://images.unsplash.com/photo-1540575467063-178a50c2df87?auto=format&fit=crop&w=800&q=80',
     iconName: 'Presentation',
     materials: [
       { id: 'flexi-340-display', name: 'Bahan Flexi High-Res 340gr (Ekonomis)', extraPrice: 0 },
@@ -133,7 +138,8 @@ export const PRODUCTS: Product[] = [
     unit: 'buku',
     minQty: 4,
     pricingType: 'grid',
-    imageGradient: 'from-blue-600 to-indigo-700',
+    imageGradient: 'from-black via-zinc-900 to-neutral-900',
+    customImageUrl: 'https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?auto=format&fit=crop&w=800&q=80',
     iconName: 'BookOpen',
     materials: [
       { id: 'bookpaper-72', name: 'Bahan Isi: Bookpaper 72gr (Standard Novel)', extraPrice: 0 },

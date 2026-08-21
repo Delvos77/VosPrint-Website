@@ -33,125 +33,146 @@ interface ProductCardProps {
 export default function ProductCard({ product, onSelect, role = 'buyer', onAdminEdit, onViewMaterials, onDeleteProduct }: ProductCardProps) {
   const IconComponent = iconMap[product.iconName] || Image;
 
+  // Format short spec description
+  const getSubSpec = () => {
+    const catLabel = product.category.replace('_', ' ').toUpperCase();
+    const primaryMat = product.materials[0]?.name.split('(')[0].trim() || `${product.materials.length} Bahan`;
+    return `${catLabel} · ${primaryMat}`;
+  };
+
   return (
     <div 
       id={`product-card-${product.id}`}
-      className="group relative flex flex-col overflow-hidden rounded-xl border border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-900 shadow-sm transition-all duration-300 ease-out hover:scale-[1.025] hover:-translate-y-1.5 hover:border-amber-400/50 dark:hover:border-amber-500/30 hover:shadow-2xl hover:shadow-slate-300/40 dark:hover:shadow-slate-950/80 cursor-pointer"
+      className="group relative flex flex-col overflow-hidden rounded-2xl border border-white/10 bg-[#121316] text-white shadow-xl transition-all duration-300 ease-out hover:border-white/25 hover:shadow-2xl hover:shadow-black/70 cursor-pointer"
       onClick={() => {
         if (role !== 'moderator') {
           onSelect(product);
         }
       }}
     >
-      {/* Visual Header / Banner */}
+      {/* Visual Header / Banner Image Mockup */}
       <div 
-        className={`relative flex h-40 w-full items-center justify-center ${product.customImageUrl ? '' : `bg-gradient-to-br ${product.imageGradient}`} p-6 text-white cursor-zoom-in overflow-hidden`}
-        style={product.customImageUrl ? { backgroundImage: `url(${product.customImageUrl})`, backgroundSize: 'cover', backgroundPosition: 'center' } : undefined}
+        className="relative h-48 sm:h-52 w-full overflow-hidden bg-[#181a20]"
         id={`product-gradient-${product.id}`}
-        onClick={(e) => {
-          e.stopPropagation();
-          if (onViewMaterials) {
-            onViewMaterials(product);
-          } else {
-            onSelect(product);
-          }
-        }}
       >
-        {/* Subtle grid pattern background overlay */}
-        {!product.customImageUrl && (
-          <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.07)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.07)_1px,transparent_1px)] bg-[size:20px_20px] opacity-30"></div>
-        )}
-        
-        {!product.customImageUrl && (
-          <IconComponent className="h-16 w-16 text-white/90 drop-shadow-md group-hover:scale-110 transition-transform duration-300" />
+        {product.customImageUrl ? (
+          <img
+            src={product.customImageUrl}
+            alt={product.name}
+            className="h-full w-full object-cover object-center transition-transform duration-700 ease-out group-hover:scale-105"
+            referrerPolicy="no-referrer"
+          />
+        ) : (
+          <div className={`h-full w-full flex items-center justify-center bg-gradient-to-br ${product.imageGradient} p-6`}>
+            <IconComponent className="h-16 w-16 text-white/80 transition-transform duration-500 group-hover:scale-110 drop-shadow-md" />
+          </div>
         )}
 
-        {/* Hover info overlay to view catalog */}
-        <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
-          <span className="bg-amber-500 text-slate-950 text-[10px] font-bold px-3 py-1.5 rounded-full shadow-lg transform translate-y-2 group-hover:translate-y-0 transition-all duration-300">
-            📖 Lihat Katalog Bahan
+        {/* Subtle Dark Vignette at bottom of image */}
+        <div className="absolute inset-0 bg-gradient-to-t from-[#121316] via-transparent to-black/20 opacity-80 group-hover:opacity-60 transition-opacity"></div>
+
+        {/* Top Badges */}
+        <div className="absolute top-3 left-3 right-3 flex items-center justify-between z-10 pointer-events-none">
+          <span 
+            id={`product-cat-badge-${product.id}`}
+            className="rounded-full bg-black/60 backdrop-blur-md px-2.5 py-1 text-[9px] font-extrabold uppercase tracking-wider text-white/90 border border-white/10"
+          >
+            {product.category.replace('_', ' ')}
           </span>
+
+          {product.pricingType === 'grid' && (
+            <span className="rounded-full bg-amber-500/90 text-slate-950 px-2 py-0.5 text-[9px] font-black tracking-wide shadow-sm">
+              TIER GRID
+            </span>
+          )}
         </div>
-        
-        <span 
-          id={`product-cat-badge-${product.id}`}
-          className="absolute top-3 right-3 rounded-full bg-black/30 backdrop-blur-md px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-white z-10"
-        >
-          {product.category.replace('_', ' ')}
-        </span>
+
+        {/* Floating Quick Action Overlay on Hover */}
+        <div className="absolute inset-0 flex items-center justify-center gap-2 opacity-0 group-hover:opacity-100 transition-all duration-300 bg-black/40 backdrop-blur-xs p-4">
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              onSelect(product);
+            }}
+            className="rounded-full bg-white text-black hover:bg-neutral-200 font-extrabold text-xs px-4 py-2 shadow-lg transform translate-y-2 group-hover:translate-y-0 transition-transform duration-300 flex items-center space-x-1.5"
+          >
+            <span>Hitung & Pesan</span>
+            <ArrowRight className="h-3.5 w-3.5" />
+          </button>
+
+          {onViewMaterials && (
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                onViewMaterials(product);
+              }}
+              className="rounded-full bg-neutral-900/90 hover:bg-neutral-800 text-white font-bold text-xs px-3.5 py-2 border border-white/20 shadow-lg transform translate-y-2 group-hover:translate-y-0 transition-transform duration-300"
+              title="Lihat Spesifikasi & Database Bahan"
+            >
+              Info Bahan
+            </button>
+          )}
+        </div>
       </div>
 
-      {/* Content */}
-      <div className="flex flex-1 flex-col p-4 md:p-5" id={`product-content-${product.id}`}>
-        <h3 className="text-base font-bold text-slate-900 dark:text-slate-100 group-hover:text-slate-800 dark:group-hover:text-white line-clamp-1" id={`product-title-${product.id}`}>
-          {product.name}
-        </h3>
-        
-        <p className="mt-1.5 text-xs text-slate-500 dark:text-slate-400 line-clamp-2 leading-relaxed flex-1">
-          {product.description}
-        </p>
-
-        {/* Spesifikasi Ringkas */}
-        <div className="mt-3 flex flex-wrap gap-1" id={`product-specs-${product.id}`}>
-          <span className="rounded bg-slate-100 dark:bg-slate-800 px-2 py-0.5 text-[10px] font-medium text-slate-600 dark:text-slate-300">
-            Min. {product.minQty} {product.unit}
-          </span>
-          <span className="rounded bg-slate-100 dark:bg-slate-800 px-2 py-0.5 text-[10px] font-medium text-slate-600 dark:text-slate-300">
-            {product.pricingType === 'area' ? 'Ukuran Bebas' : 'Pilihan Premium'}
-          </span>
-          <span className="rounded bg-slate-100 dark:bg-slate-800 px-2 py-0.5 text-[10px] font-medium text-slate-600 dark:text-slate-300">
-            {product.materials.length} Bahan
-          </span>
-        </div>
-
-        {/* Price & Action */}
-        <div className="mt-4 pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between" id={`product-footer-${product.id}`}>
-          <div>
-            <span className="block text-[10px] text-slate-400 dark:text-slate-500 font-semibold uppercase tracking-wider">Mulai Dari</span>
-            <span className="text-sm font-extrabold text-orange-600 dark:text-orange-400 md:text-base" id={`product-price-${product.id}`}>
-              {formatIDR(product.basePrice)}
-              <span className="text-[10px] font-normal text-slate-500 dark:text-slate-400">/{product.unit}</span>
-            </span>
+      {/* Card Footer Details (Matching Reference Style: Title + Subtitle on Left, Price on Right) */}
+      <div className="flex flex-col p-4 sm:p-5 justify-between flex-1 bg-[#121316]" id={`product-content-${product.id}`}>
+        <div className="flex items-start justify-between gap-3">
+          <div className="min-w-0 flex-1">
+            <h3 
+              className="text-sm md:text-base font-bold text-white tracking-tight group-hover:text-amber-300 transition-colors truncate" 
+              id={`product-title-${product.id}`}
+              title={product.name}
+            >
+              {product.name}
+            </h3>
+            
+            <p className="mt-1 text-[11px] text-neutral-400 font-medium tracking-normal truncate">
+              {getSubSpec()}
+            </p>
           </div>
 
-          {role === 'moderator' ? (
+          {/* Price on right (like reference $19 / $75) */}
+          <div className="text-right shrink-0">
+            <span className="text-sm md:text-base font-black text-white tracking-tight" id={`product-price-${product.id}`}>
+              {formatIDR(product.basePrice)}
+            </span>
+            <span className="block text-[10px] text-neutral-400 font-medium -mt-0.5">
+              /{product.unit}
+            </span>
+          </div>
+        </div>
+
+        {/* Moderator / Admin Actions */}
+        {role === 'moderator' && (
+          <div className="mt-4 pt-3 border-t border-white/10 flex items-center justify-between gap-2" onClick={(e) => e.stopPropagation()}>
+            <span className="text-[10px] text-amber-400 font-bold uppercase tracking-wider">Akses Admin</span>
             <div className="flex items-center space-x-1.5">
               {onDeleteProduct && (
                 <button
                   id={`btn-admin-delete-${product.id}`}
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onDeleteProduct(product.id);
-                  }}
-                  className="flex items-center justify-center rounded-lg border border-red-200 dark:border-red-900/50 bg-red-50 dark:bg-red-950/30 p-2 text-xs font-bold text-red-600 dark:text-red-400 hover:bg-red-600 hover:text-white dark:hover:bg-red-600 dark:hover:text-white transition-all duration-200"
-                  title="Hapus Jasa Cetak Ini Dari Katalog"
+                  onClick={() => onDeleteProduct(product.id)}
+                  className="flex items-center justify-center rounded-lg border border-red-500/30 bg-red-500/10 p-1.5 text-xs font-bold text-red-400 hover:bg-red-600 hover:text-white transition"
+                  title="Hapus Jasa Ini Dari Katalog"
                 >
                   <Trash2 className="h-3.5 w-3.5" />
                 </button>
               )}
               <button
                 id={`btn-admin-edit-${product.id}`}
-                onClick={(e) => {
-                  e.stopPropagation();
+                onClick={() => {
                   if (onAdminEdit) onAdminEdit(product);
                 }}
-                className="flex items-center space-x-1.5 rounded-lg bg-red-600 px-3 py-2 text-xs font-bold text-white shadow-sm hover:bg-red-500 transition-all duration-200"
+                className="flex items-center space-x-1 rounded-lg bg-red-600 hover:bg-red-500 px-2.5 py-1.5 text-[11px] font-bold text-white shadow-sm transition"
               >
-                <Edit className="h-3.5 w-3.5" />
+                <Edit className="h-3 w-3" />
                 <span>Edit Harga</span>
               </button>
             </div>
-          ) : (
-            <button
-              id={`btn-select-product-${product.id}`}
-              onClick={() => onSelect(product)}
-              className="flex items-center space-x-1.5 rounded-lg bg-slate-900 dark:bg-slate-800 dark:hover:bg-amber-500 text-white dark:text-slate-200 px-3.5 py-2 text-xs font-bold shadow-sm hover:bg-amber-500 hover:text-slate-950 transition-all duration-200"
-            >
-              <span>Pilih</span>
-              <ArrowRight className="h-3.5 w-3.5" />
-            </button>
-          )}
-        </div>
+          </div>
+        )}
       </div>
     </div>
   );

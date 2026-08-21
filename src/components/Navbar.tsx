@@ -4,7 +4,24 @@
  */
 
 import React from 'react';
-import { Printer, ShoppingBag, Phone, Clock, Store, Sun, Moon, Shield, Eye, Edit3, Sparkles, Search, Lock, KeyRound } from 'lucide-react';
+import { 
+  Printer, 
+  ShoppingBag, 
+  Phone, 
+  Clock, 
+  Store, 
+  Sun, 
+  Moon, 
+  Shield, 
+  Edit3, 
+  Sparkles, 
+  Lock, 
+  KeyRound,
+  Instagram,
+  MessageCircle,
+  ExternalLink,
+  Layers
+} from 'lucide-react';
 import { ProductCategory, StoreHours } from '../types';
 
 interface NavbarProps {
@@ -17,7 +34,7 @@ interface NavbarProps {
   setActiveCategory: (category: ProductCategory) => void;
   onOpenTemplatesModal?: () => void;
   
-  // New props for Theme and Role switching
+  // Theme and Role switching
   theme: 'light' | 'dark';
   toggleTheme: () => void;
   role: 'buyer' | 'moderator';
@@ -56,87 +73,129 @@ export default function Navbar({
     closeTime: '20:00',
     closedDaysInfo: 'Minggu & Hari Libur Tutup'
   };
+
   return (
     <>
-      {/* ====== DESKTOP & TABLET TOP HEADER ====== */}
+      {/* ====== DESKTOP & TABLET TOP HEADER (Exact Reference Style) ====== */}
       <header 
-        className="sticky top-0 z-40 w-full border-b transition-colors duration-200 border-slate-200 bg-slate-900 text-white shadow-md dark:border-slate-800"
+        className="sticky top-0 z-40 w-full border-b border-white/10 bg-[#0c0d10]/95 backdrop-blur-md text-white transition-colors duration-200"
         id="desktop-header"
       >
         <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3 md:px-6">
           
-          {/* Logo */}
+          {/* 1. Left Logo (Sleek Geometric Emblem & SUPPLY-Style Typography) */}
           <button 
             onClick={() => { setCurrentTab('catalog'); setActiveCategory('all'); }} 
-            className="flex items-center space-x-2 transition hover:opacity-90 text-left"
+            className="flex items-center space-x-2.5 transition hover:opacity-90 text-left group"
             id="nav-logo-btn"
           >
-            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-gradient-to-tr from-amber-500 to-orange-600 shadow-lg" id="logo-badge">
-              <Printer className="h-5 w-5 text-white" />
+            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-white text-black font-black tracking-tight shadow-md group-hover:scale-105 transition-transform" id="logo-badge">
+              <span className="text-base tracking-tighter">⚡</span>
             </div>
             <div>
-              <h1 className="text-lg font-bold tracking-tight text-white md:text-xl">
-                Cetak<span className="text-amber-400">Instan</span>
-              </h1>
-              <p className="text-[10px] text-slate-300 font-medium tracking-wide">DIGITAL & OFFSET PRINTING</p>
+              <div className="text-base font-extrabold tracking-widest text-white leading-none">
+                CETAK<span className="text-neutral-400 font-light ml-0.5">INSTAN</span>
+              </div>
+              <span className="text-[9px] text-neutral-400 font-medium tracking-wider uppercase block mt-0.5">Powerhouse Printing</span>
             </div>
           </button>
 
-          {/* Kontak & Jam Buka (Desktop Only) */}
-          <div className="hidden lg:flex items-center space-x-6 text-xs text-slate-300" id="desktop-store-info">
-            <div className="flex items-center space-x-2">
-              <Clock className="h-4 w-4 text-amber-400 shrink-0" />
-              <div>
-                <div className="flex items-center space-x-1">
-                  <p className="font-semibold text-white">{displayHours.openDays}: {displayHours.openTime} - {displayHours.closeTime}</p>
-                  {role === 'moderator' && onOpenEditStoreHours && (
-                    <button
-                      onClick={onOpenEditStoreHours}
-                      className="ml-1 text-[9px] font-bold text-amber-400 hover:text-amber-300 bg-amber-500/20 px-1.5 py-0.5 rounded border border-amber-500/30 transition flex items-center space-x-0.5"
-                      title="Atur Jam Operasional Toko"
-                    >
-                      <Edit3 className="h-2.5 w-2.5" />
-                      <span>Edit</span>
-                    </button>
-                  )}
-                </div>
-                <p className="text-slate-400 text-[10px]">{displayHours.closedDaysInfo}</p>
-              </div>
-            </div>
-            <div className="flex items-center space-x-2">
-              <Phone className="h-4 w-4 text-cyan-400 shrink-0" />
-              <div>
-                <p className="font-semibold text-white">WA Fast Response</p>
-                <p className="text-slate-400 text-[10px]">0853-3949-9687</p>
-              </div>
-            </div>
-          </div>
+          {/* 2. Center Pill Navigation (Exact Floating Segmented Pill Menu) */}
+          <nav className="hidden md:flex items-center bg-[#15171d] border border-white/10 rounded-full p-1 shadow-inner text-xs font-semibold" id="desktop-nav-menu">
+            <button
+              id="tab-catalog-btn"
+              onClick={() => { setCurrentTab('catalog'); setActiveCategory('all'); }}
+              className={`px-4 py-1.5 rounded-full transition-all duration-200 ${
+                currentTab === 'catalog'
+                  ? 'bg-white text-black font-extrabold shadow-sm'
+                  : 'text-neutral-300 hover:text-white hover:bg-white/5'
+              }`}
+            >
+              Discover
+            </button>
 
-          {/* Right Action Menu */}
-          <div className="flex items-center space-x-2 md:space-x-3.5" id="desktop-actions">
+            {onOpenTemplatesModal && (
+              <button
+                id="tab-templates-btn"
+                onClick={onOpenTemplatesModal}
+                className="px-3.5 py-1.5 rounded-full text-neutral-300 hover:text-white hover:bg-white/5 transition-all duration-200 flex items-center space-x-1.5"
+              >
+                <span>Templates</span>
+                <span className="bg-amber-500/20 text-amber-300 border border-amber-500/30 text-[9px] px-1.5 py-0.2 rounded-full font-bold">PRO</span>
+              </button>
+            )}
+
+            <button
+              id="tab-orders-btn"
+              onClick={() => setCurrentTab('orders')}
+              className={`px-3.5 py-1.5 rounded-full transition-all duration-200 ${
+                currentTab === 'orders'
+                  ? 'bg-white text-black font-extrabold shadow-sm'
+                  : 'text-neutral-300 hover:text-white hover:bg-white/5'
+              }`}
+            >
+              Tracking
+            </button>
+
+            <button
+              id="tab-info-btn"
+              onClick={() => setCurrentTab('info')}
+              className={`px-3.5 py-1.5 rounded-full transition-all duration-200 ${
+                currentTab === 'info'
+                  ? 'bg-white text-black font-extrabold shadow-sm'
+                  : 'text-neutral-300 hover:text-white hover:bg-white/5'
+              }`}
+            >
+              Workshop
+            </button>
+          </nav>
+
+          {/* 3. Right Action Bar (Social Links, Admin, Theme & Cart) */}
+          <div className="flex items-center space-x-2 md:space-x-3" id="desktop-actions">
             
-            {/* Role Switcher (Admin Badge when logged in, or discreet Lock icon for Admin PIN) */}
+            {/* Social / WhatsApp quick connect */}
+            <div className="hidden lg:flex items-center space-x-2 text-neutral-400">
+              <a
+                href="https://wa.me/6285339499687"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="h-8 w-8 rounded-full flex items-center justify-center hover:bg-white/10 hover:text-emerald-400 transition"
+                title="Chat WhatsApp Admin"
+              >
+                <MessageCircle className="h-4 w-4" />
+              </a>
+              <a
+                href="https://instagram.com"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="h-8 w-8 rounded-full flex items-center justify-center hover:bg-white/10 hover:text-pink-400 transition"
+                title="Instagram Cetak Instan"
+              >
+                <Instagram className="h-4 w-4" />
+              </a>
+            </div>
+
+            {/* Role Switcher (Admin Badge when logged in, or discreet Lock icon) */}
             {role === 'moderator' ? (
               <div className="flex items-center space-x-1.5">
                 <button
                   onClick={toggleRole}
                   id="role-toggle-btn"
-                  className="flex items-center space-x-1.5 rounded-full px-3 py-1.5 text-xs font-bold bg-red-600 text-white hover:bg-red-700 transition-all shadow-xs"
+                  className="flex items-center space-x-1.5 rounded-full px-3 py-1.5 text-xs font-extrabold bg-red-600 hover:bg-red-700 text-white transition shadow-sm"
                   title="Keluar dari Mode Admin"
                 >
-                  <Shield className="h-3.5 w-3.5 text-amber-300 shrink-0" />
-                  <span>Mode Admin (Keluar)</span>
+                  <Shield className="h-3.5 w-3.5" />
+                  <span className="hidden sm:inline">Admin Mode</span>
                 </button>
 
                 {onOpenAdminSecurityModal && (
                   <button
                     onClick={onOpenAdminSecurityModal}
                     id="admin-security-settings-btn"
-                    className="flex items-center space-x-1 rounded-full bg-slate-800 text-amber-400 hover:bg-slate-700 border border-slate-700 px-2.5 py-1.5 text-xs font-bold transition"
+                    className="flex items-center space-x-1 rounded-full bg-[#181a20] text-amber-400 hover:bg-[#22262e] border border-white/10 px-2.5 py-1.5 text-xs font-bold transition"
                     title="Ubah PIN & No WA Admin"
                   >
-                    <KeyRound className="h-3.5 w-3.5 text-amber-400" />
-                    <span className="hidden sm:inline">Ubah PIN</span>
+                    <KeyRound className="h-3.5 w-3.5" />
                   </button>
                 )}
               </div>
@@ -144,10 +203,10 @@ export default function Navbar({
               <button
                 onClick={onOpenAdminPinModal}
                 id="admin-login-lock-btn"
-                className="flex h-9 w-9 items-center justify-center rounded-full bg-slate-800 text-slate-400 border border-slate-700 hover:bg-slate-700 hover:text-amber-400 transition"
+                className="flex h-8 w-8 items-center justify-center rounded-full bg-[#15171d] text-neutral-400 border border-white/10 hover:bg-white/10 hover:text-white transition"
                 title="Akses Pengelola Toko"
               >
-                <Lock className="h-4 w-4" />
+                <Lock className="h-3.5 w-3.5" />
               </button>
             ) : null}
 
@@ -155,78 +214,34 @@ export default function Navbar({
             <button
               id="theme-toggle-btn"
               onClick={toggleTheme}
-              className="flex h-9 w-9 items-center justify-center rounded-full bg-slate-800 text-slate-300 border border-slate-700 hover:bg-slate-700 hover:text-amber-400 transition"
+              className="flex h-8 w-8 items-center justify-center rounded-full bg-[#15171d] text-neutral-400 border border-white/10 hover:bg-white/10 hover:text-white transition"
               title={theme === 'dark' ? 'Ganti ke Mode Terang' : 'Ganti ke Mode Gelap'}
             >
               {theme === 'dark' ? (
-                <Sun className="h-4 w-4 text-amber-400" />
+                <Sun className="h-3.5 w-3.5 text-amber-300" />
               ) : (
-                <Moon className="h-4 w-4 text-slate-300" />
+                <Moon className="h-3.5 w-3.5 text-neutral-300" />
               )}
             </button>
 
-            {/* Desktop Nav Links */}
-            <nav className="hidden md:flex items-center space-x-1" id="desktop-nav-menu">
-              <button
-                id="tab-catalog-btn"
-                onClick={() => setCurrentTab('catalog')}
-                className={`px-3 py-2 rounded-md text-xs font-bold transition-all duration-200 ${
-                  currentTab === 'catalog'
-                    ? 'bg-amber-500 text-slate-950 font-extrabold'
-                    : 'text-slate-300 hover:bg-slate-800 hover:text-white'
-                }`}
-              >
-                Katalog Jasa
-              </button>
-              {onOpenTemplatesModal && (
-                <button
-                  id="tab-templates-btn"
-                  onClick={onOpenTemplatesModal}
-                  className="px-3 py-2 rounded-md text-xs font-bold text-amber-400 bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/20 transition-all duration-200 flex items-center space-x-1"
-                >
-                  <Sparkles className="h-3.5 w-3.5" />
-                  <span>Templat Gratis</span>
-                </button>
-              )}
-              <button
-                id="tab-orders-btn"
-                onClick={() => setCurrentTab('orders')}
-                className={`px-3 py-2 rounded-md text-xs font-bold transition-all duration-200 ${
-                  currentTab === 'orders'
-                    ? 'bg-amber-500 text-slate-950 font-extrabold'
-                    : 'text-slate-300 hover:bg-slate-800 hover:text-white'
-                }`}
-              >
-                Cek Status Pesanan
-              </button>
-              <button
-                id="tab-info-btn"
-                onClick={() => setCurrentTab('info')}
-                className={`px-3 py-2 rounded-md text-xs font-bold transition-all duration-200 ${
-                  currentTab === 'info'
-                    ? 'bg-amber-500 text-slate-950 font-extrabold'
-                    : 'text-slate-300 hover:bg-slate-800 hover:text-white'
-                }`}
-              >
-                Informasi Toko
-              </button>
-            </nav>
-
-            {/* Keranjang Belanja Button */}
+            {/* Cart Button with Count Pill */}
             <button
               id="cart-drawer-trigger"
               onClick={openCartDrawer}
-              className="relative flex h-10 w-10 items-center justify-center rounded-full bg-slate-800 text-white border border-slate-700 hover:bg-slate-700 hover:text-amber-400 transition"
+              className="relative flex items-center space-x-2 rounded-full bg-[#181a20] border border-white/10 hover:border-white/25 px-3 py-1.5 text-xs font-bold text-white transition shadow-sm"
               aria-label="Keranjang Belanja"
             >
-              <ShoppingBag className="h-5 w-5" />
-              {cartCount > 0 && (
+              <ShoppingBag className="h-4 w-4 text-neutral-300" />
+              <span className="hidden sm:inline text-neutral-300">Order</span>
+              {cartCount > 0 ? (
                 <span 
                   id="cart-badge-count"
-                  className="absolute -top-1.5 -right-1.5 flex h-5 w-5 items-center justify-center rounded-full bg-orange-500 text-[11px] font-bold text-white ring-2 ring-slate-900 animate-pulse"
+                  className="flex h-5 min-w-[20px] items-center justify-center rounded-full bg-white text-black px-1.5 text-[10px] font-black"
                 >
                   {cartCount}
                 </span>
+              ) : (
+                <span className="text-[10px] text-neutral-500 font-bold">0</span>
               )}
             </button>
           </div>
@@ -234,19 +249,18 @@ export default function Navbar({
       </header>
 
       {/* ====== MOBILE FLOATING BOTTOM NAVIGATION ====== */}
-      {/* Only visible on mobile/tablet (below md viewport) */}
       <nav 
         id="mobile-bottom-nav"
-        className="fixed bottom-4 left-4 right-4 z-50 flex h-16 items-center justify-around rounded-2xl bg-slate-900/95 text-slate-400 border border-slate-800 shadow-2xl backdrop-blur-md md:hidden px-2"
+        className="fixed bottom-4 left-4 right-4 z-50 flex h-15 items-center justify-around rounded-2xl bg-[#0e1014]/95 text-neutral-400 border border-white/10 shadow-2xl backdrop-blur-md md:hidden px-2"
       >
         <button
           id="mobile-nav-catalog"
           onClick={() => setCurrentTab('catalog')}
           className={`flex flex-col items-center justify-center w-14 h-full rounded-xl transition ${
-            currentTab === 'catalog' ? 'text-amber-400 font-semibold' : 'hover:text-white'
+            currentTab === 'catalog' ? 'text-white font-bold' : 'hover:text-white'
           }`}
         >
-          <Printer className={`h-4 w-4 mb-0.5 ${currentTab === 'catalog' ? 'stroke-[2.5px]' : ''}`} />
+          <Printer className="h-4 w-4 mb-0.5" />
           <span className="text-[9px] tracking-tight">Katalog</span>
         </button>
 
@@ -254,15 +268,15 @@ export default function Navbar({
           id="mobile-nav-cart"
           onClick={() => setCurrentTab('cart')}
           className={`relative flex flex-col items-center justify-center w-14 h-full rounded-xl transition ${
-            currentTab === 'cart' ? 'text-amber-400 font-semibold' : 'hover:text-white'
+            currentTab === 'cart' ? 'text-white font-bold' : 'hover:text-white'
           }`}
         >
-          <ShoppingBag className={`h-4 w-4 mb-0.5 ${currentTab === 'cart' ? 'stroke-[2.5px]' : ''}`} />
+          <ShoppingBag className="h-4 w-4 mb-0.5" />
           <span className="text-[9px] tracking-tight">Keranjang</span>
           {cartCount > 0 && (
             <span 
               id="mobile-cart-badge"
-              className="absolute top-1 right-2.5 flex h-4 w-4 items-center justify-center rounded-full bg-orange-500 text-[8px] font-bold text-white ring-1 ring-slate-900"
+              className="absolute top-1 right-2.5 flex h-4 w-4 items-center justify-center rounded-full bg-white text-black text-[8px] font-black"
             >
               {cartCount}
             </span>
@@ -270,47 +284,44 @@ export default function Navbar({
         </button>
 
         <button
+          id="mobile-nav-orders"
+          onClick={() => setCurrentTab('orders')}
+          className={`flex flex-col items-center justify-center w-14 h-full rounded-xl transition ${
+            currentTab === 'orders' ? 'text-white font-bold' : 'hover:text-white'
+          }`}
+        >
+          <Clock className="h-4 w-4 mb-0.5" />
+          <span className="text-[9px] tracking-tight">Status</span>
+        </button>
+
+        <button
           id="mobile-nav-info"
           onClick={() => setCurrentTab('info')}
           className={`flex flex-col items-center justify-center w-14 h-full rounded-xl transition ${
-            currentTab === 'info' ? 'text-amber-400 font-semibold' : 'hover:text-white'
+            currentTab === 'info' ? 'text-white font-bold' : 'hover:text-white'
           }`}
         >
-          <Store className={`h-4 w-4 mb-0.5 ${currentTab === 'info' ? 'stroke-[2.5px]' : ''}`} />
+          <Store className="h-4 w-4 mb-0.5" />
           <span className="text-[9px] tracking-tight">Toko</span>
         </button>
 
-        {/* Small theme switch in mobile bottom bar */}
-        <button
-          onClick={toggleTheme}
-          id="mobile-theme-toggle"
-          className="flex flex-col items-center justify-center w-14 h-full text-slate-400 hover:text-white transition"
-        >
-          {theme === 'dark' ? (
-            <Sun className="h-4 w-4 mb-0.5 text-amber-400" />
-          ) : (
-            <Moon className="h-4 w-4 mb-0.5 text-slate-400" />
-          )}
-          <span className="text-[9px] tracking-tight">{theme === 'dark' ? 'Terang' : 'Gelap'}</span>
-        </button>
-
-        {/* Small role toggle in mobile bottom bar */}
+        {/* Small admin toggle */}
         <button
           onClick={role === 'moderator' ? toggleRole : onOpenAdminPinModal}
           id="mobile-role-toggle"
           className={`flex flex-col items-center justify-center w-14 h-full rounded-xl transition ${
-            role === 'moderator' ? 'text-rose-400 font-bold' : 'text-slate-400'
+            role === 'moderator' ? 'text-rose-400 font-bold' : 'text-neutral-400'
           }`}
         >
           {role === 'moderator' ? (
             <>
-              <Shield className="h-4 w-4 mb-0.5 text-amber-300" />
-              <span className="text-[9px] tracking-tight">Keluar Admin</span>
+              <Shield className="h-4 w-4 mb-0.5 text-rose-400" />
+              <span className="text-[9px] tracking-tight">Admin</span>
             </>
           ) : (
             <>
-              <Lock className="h-4 w-4 mb-0.5 text-slate-400" />
-              <span className="text-[9px] tracking-tight">Admin</span>
+              <Lock className="h-4 w-4 mb-0.5 text-neutral-400" />
+              <span className="text-[9px] tracking-tight">Login</span>
             </>
           )}
         </button>
