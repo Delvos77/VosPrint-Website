@@ -52,6 +52,83 @@ export function removeSessionToken() {
   localStorage.removeItem(TOKEN_KEY);
 }
 
+// Lockout cooldown options
+export type LockoutDurationMinutes = 30 | 60 | 360 | 720 | 1440;
+
+export const LOCKOUT_DURATION_OPTIONS: { label: string; minutes: LockoutDurationMinutes; desc: string }[] = [
+  { label: '30 Menit', minutes: 30, desc: 'Standar keamanan cepat' },
+  { label: '1 Jam', minutes: 60, desc: 'Proteksi sedang' },
+  { label: '6 Jam', minutes: 360, desc: 'Proteksi ekstra' },
+  { label: '12 Jam', minutes: 720, desc: 'Proteksi tinggi' },
+  { label: '1 Hari (24 Jam)', minutes: 1440, desc: 'Proteksi maksimum anti brute-force' },
+];
+
+/**
+ * Get configured lockout duration in minutes (default: 30)
+ */
+export function getLockoutDurationMinutes(): LockoutDurationMinutes {
+  const saved = localStorage.getItem('cetakinstan_lockout_duration_minutes');
+  if (saved) {
+    const parsed = parseInt(saved, 10);
+    if ([30, 60, 360, 720, 1440].includes(parsed)) {
+      return parsed as LockoutDurationMinutes;
+    }
+  }
+  return 30;
+}
+
+/**
+ * Set configured lockout duration in minutes
+ */
+export function setLockoutDurationMinutes(minutes: LockoutDurationMinutes): void {
+  localStorage.setItem('cetakinstan_lockout_duration_minutes', minutes.toString());
+}
+
+/**
+ * Get timestamp until which the user is locked out
+ */
+export function getLockoutUntilTimestamp(): number {
+  const saved = localStorage.getItem('cetakinstan_lockout_until');
+  return saved ? parseInt(saved, 10) : 0;
+}
+
+/**
+ * Set lockout until timestamp based on duration
+ */
+export function triggerLockoutCooldown(customMinutes?: LockoutDurationMinutes): number {
+  const duration = customMinutes || getLockoutDurationMinutes();
+  const until = Date.now() + duration * 60 * 1000;
+  localStorage.setItem('cetakinstan_lockout_until', until.toString());
+  localStorage.setItem('cetakinstan_is_blocked_moderator', 'true');
+  localStorage.setItem('cetakinstan_failed_pin_attempts', '3');
+  return until;
+}
+
+/**
+ * Get remaining cooldown seconds (0 if not in cooldown)
+ */
+export function getRemainingCooldownSeconds(): number {
+  const until = getLockoutUntilTimestamp();
+  if (!until) return 0;
+  const remainingMs = until - Date.now();
+  return remainingMs > 0 ? Math.ceil(remainingMs / 1000) : 0;
+}
+
+/**
+ * Format seconds into human readable countdown: "29m 45s" or "23j 59m 10s"
+ */
+export function formatCooldownTime(seconds: number): string {
+  if (seconds <= 0) return '0d';
+  const h = Math.floor(seconds / 3600);
+  const m = Math.floor((seconds % 3600) / 60);
+  const s = seconds % 60;
+
+  if (h > 0) {
+    return `${h}j ${m.toString().padStart(2, '0')}m ${s.toString().padStart(2, '0')}d`;
+  }
+  return `${m}m ${s.toString().padStart(2, '0')}d`;
+}
+
 /**
  * Perform secure login with server-first and resilient client fallback
  */

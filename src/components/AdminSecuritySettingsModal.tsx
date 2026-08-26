@@ -4,9 +4,17 @@
  */
 
 import React, { useState, useEffect } from 'react';
-import { Shield, X, KeyRound, AlertCircle, Eye, EyeOff, ShieldAlert, CheckCircle2, Unlock, UserX, Loader2, RefreshCw } from 'lucide-react';
+import { Shield, X, KeyRound, AlertCircle, Eye, EyeOff, ShieldAlert, CheckCircle2, Unlock, UserX, Loader2, RefreshCw, Timer, Clock } from 'lucide-react';
 import { BlockedClient } from './AdminPinModal';
-import { changeAdminPin, getSecurityStatus, unblockDevice } from '../utils/adminAuth';
+import { 
+  changeAdminPin, 
+  getSecurityStatus, 
+  unblockDevice, 
+  getLockoutDurationMinutes, 
+  setLockoutDurationMinutes, 
+  LOCKOUT_DURATION_OPTIONS, 
+  LockoutDurationMinutes 
+} from '../utils/adminAuth';
 
 interface AdminSecuritySettingsModalProps {
   isOpen: boolean;
@@ -19,13 +27,14 @@ export default function AdminSecuritySettingsModal({
   onClose,
   onSaveToast
 }: AdminSecuritySettingsModalProps) {
-  const [activeTab, setActiveTab] = useState<'pin' | 'blocked_list' | 'overview'>('pin');
+  const [activeTab, setActiveTab] = useState<'pin' | 'cooldown' | 'blocked_list' | 'overview'>('pin');
   const [currentPinInput, setCurrentPinInput] = useState<string>('');
   const [newPin, setNewPin] = useState<string>('');
   const [confirmPin, setConfirmPin] = useState<string>('');
   const [showPin, setShowPin] = useState<boolean>(false);
   const [error, setError] = useState<string>('');
   const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [cooldownDuration, setCooldownDuration] = useState<LockoutDurationMinutes>(getLockoutDurationMinutes());
 
   // Blocked Clients List State
   const [blockedList, setBlockedList] = useState<BlockedClient[]>([]);
@@ -34,6 +43,7 @@ export default function AdminSecuritySettingsModal({
   useEffect(() => {
     if (isOpen) {
       loadSecurityData();
+      setCooldownDuration(getLockoutDurationMinutes());
     }
   }, [isOpen]);
 
@@ -166,6 +176,17 @@ export default function AdminSecuritySettingsModal({
             Ubah PIN
           </button>
           <button
+            onClick={() => setActiveTab('cooldown')}
+            className={`flex-1 py-2 text-xs font-bold rounded-lg transition flex items-center justify-center space-x-1 ${
+              activeTab === 'cooldown'
+                ? 'bg-white dark:bg-slate-900 text-slate-900 dark:text-white shadow-xs'
+                : 'text-slate-500 hover:text-slate-900 dark:hover:text-white'
+            }`}
+          >
+            <Timer className="h-3.5 w-3.5 mr-1" />
+            <span>Jeda Keamanan</span>
+          </button>
+          <button
             onClick={() => setActiveTab('blocked_list')}
             className={`flex-1 py-2 text-xs font-bold rounded-lg transition flex items-center justify-center space-x-1 ${
               activeTab === 'blocked_list'
@@ -173,7 +194,7 @@ export default function AdminSecuritySettingsModal({
                 : 'text-slate-500 hover:text-slate-900 dark:hover:text-white'
             }`}
           >
-            <span>Akses Terblokir</span>
+            <span>Akses</span>
             {activeBlockedCount > 0 && (
               <span className="ml-1 bg-red-500 text-white text-[10px] font-extrabold px-1.5 py-0.5 rounded-full">
                 {activeBlockedCount}
@@ -277,7 +298,66 @@ export default function AdminSecuritySettingsModal({
           </form>
         )}
 
-        {/* TAB 2: BLOCKED CLIENTS MANAGEMENT */}
+        {/* TAB 2: COOLDOWN DURATION SETTINGS (30 MENIT - 1 HARI) */}
+        {activeTab === 'cooldown' && (
+          <div className="space-y-4">
+            <div className="p-3.5 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 space-y-1.5">
+              <div className="flex items-center space-x-2 text-xs font-bold text-slate-900 dark:text-white">
+                <Clock className="h-4 w-4 text-amber-500 shrink-0" />
+                <span>Durasi Jeda Penguncian (Anti Brute-Force)</span>
+              </div>
+              <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
+                Pilih durasi waktu tunggu ketika tombol &quot;Buka Blokir&quot; ditekan atau saat terjadi kesalahan input 3x:
+              </p>
+            </div>
+
+            <div className="space-y-2">
+              {LOCKOUT_DURATION_OPTIONS.map((option) => (
+                <button
+                  key={option.minutes}
+                  type="button"
+                  onClick={() => {
+                    setCooldownDuration(option.minutes);
+                    setLockoutDurationMinutes(option.minutes);
+                    onSaveToast(`Durasi jeda diatur ke ${option.label}!`, 'success');
+                  }}
+                  className={`w-full p-3 rounded-xl border text-left flex items-center justify-between transition ${
+                    cooldownDuration === option.minutes
+                      ? 'bg-amber-500/10 border-amber-500 text-slate-900 dark:text-white shadow-xs'
+                      : 'bg-white dark:bg-slate-950/40 border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 hover:border-slate-300 dark:hover:border-slate-700'
+                  }`}
+                >
+                  <div className="space-y-0.5">
+                    <div className="text-xs font-bold flex items-center space-x-2">
+                      <span>{option.label}</span>
+                      {cooldownDuration === option.minutes && (
+                        <span className="bg-amber-500 text-slate-950 text-[10px] font-black px-2 py-0.5 rounded-full">
+                          Aktif
+                        </span>
+                      )}
+                    </div>
+                    <p className="text-[11px] text-slate-500 dark:text-slate-400">
+                      {option.desc}
+                    </p>
+                  </div>
+                  <div className={`h-4 w-4 rounded-full border flex items-center justify-center ${
+                    cooldownDuration === option.minutes
+                      ? 'border-amber-500 bg-amber-500 text-slate-950'
+                      : 'border-slate-400'
+                  }`}>
+                    {cooldownDuration === option.minutes && <div className="h-1.5 w-1.5 rounded-full bg-slate-950" />}
+                  </div>
+                </button>
+              ))}
+            </div>
+
+            <div className="p-3 rounded-xl bg-amber-500/10 border border-amber-500/20 text-xs text-amber-600 dark:text-amber-400 font-medium">
+              💡 Saat tombol Buka Blokir diklik, penghitung waktu mundur akan otomatis berjalan sesuai opsi durasi yang dipilih di atas.
+            </div>
+          </div>
+        )}
+
+        {/* TAB 3: BLOCKED CLIENTS MANAGEMENT */}
         {activeTab === 'blocked_list' && (
           <div className="space-y-4">
             <div className="flex items-center justify-between">
