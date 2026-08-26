@@ -33,13 +33,13 @@ export default function AdminPinModal({
   const [failedCount, setFailedCount] = useState<number>(0);
   const [isLoading, setIsLoading] = useState<boolean>(false);
 
-  // Check and clear blocked status on open
+  // Read and maintain blocked / failed attempts status on open
   useEffect(() => {
     if (isOpen) {
-      // Auto clear any stale client lockout so user can enter their password immediately
-      resetAdminLockout();
-      setIsBlocked(false);
-      setFailedCount(0);
+      const storedBlocked = localStorage.getItem('cetakinstan_is_blocked_moderator') === 'true';
+      const storedFailed = parseInt(localStorage.getItem('cetakinstan_failed_pin_attempts') || '0', 10);
+      setIsBlocked(storedBlocked || storedFailed >= 3);
+      setFailedCount(storedFailed);
       setPinInput('');
       setError('');
     }
@@ -65,6 +65,8 @@ export default function AdminPinModal({
       if (result.success) {
         setFailedCount(0);
         setIsBlocked(false);
+        localStorage.setItem('cetakinstan_failed_pin_attempts', '0');
+        localStorage.setItem('cetakinstan_is_blocked_moderator', 'false');
         onSuccess();
         resetAndClose();
       } else {
@@ -75,10 +77,14 @@ export default function AdminPinModal({
           localStorage.setItem('cetakinstan_failed_pin_attempts', '3');
           setError(result.message || 'PIN Salah 3x! Akses login Moderator diblokir.');
         } else {
-          const remaining = result.remainingAttempts ?? Math.max(0, 3 - (failedCount + 1));
+          const remaining = result.remainingAttempts !== undefined ? result.remainingAttempts : Math.max(0, 3 - (failedCount + 1));
           const newFailed = 3 - remaining;
           setFailedCount(newFailed);
           localStorage.setItem('cetakinstan_failed_pin_attempts', newFailed.toString());
+          if (newFailed >= 3) {
+            setIsBlocked(true);
+            localStorage.setItem('cetakinstan_is_blocked_moderator', 'true');
+          }
           setError(result.message || `PIN/Password Salah! Sisa percobaan login: ${remaining}x lagi.`);
         }
       }

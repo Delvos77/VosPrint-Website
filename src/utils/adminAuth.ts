@@ -59,6 +59,18 @@ export async function loginAdmin(pin: string): Promise<AdminLoginResponse> {
   const cleanPin = pin.trim();
   const clientId = getClientId();
 
+  // Check if already blocked locally
+  const isLocallyBlocked = localStorage.getItem('cetakinstan_is_blocked_moderator') === 'true';
+  const currentLocalFailed = parseInt(localStorage.getItem('cetakinstan_failed_pin_attempts') || '0', 10);
+  if (isLocallyBlocked || currentLocalFailed >= 3) {
+    return {
+      success: false,
+      isBlocked: true,
+      remainingAttempts: 0,
+      message: 'PIN Salah 3x! Akses login Moderator diblokir.',
+    };
+  }
+
   // Known fallback valid credentials
   const validFallbackPins = ['Delvos678', '2457', 'delvos678', 'DELVOS678'];
   const storedLocalPin = localStorage.getItem('cetakinstan_admin_pin');
@@ -81,6 +93,13 @@ export async function loginAdmin(pin: string): Promise<AdminLoginResponse> {
         localStorage.setItem('cetakinstan_role', 'moderator');
         localStorage.setItem('cetakinstan_failed_pin_attempts', '0');
         localStorage.setItem('cetakinstan_is_blocked_moderator', 'false');
+      } else {
+        const remaining = data.remainingAttempts !== undefined ? data.remainingAttempts : Math.max(0, 3 - (currentLocalFailed + 1));
+        const newFailed = data.isBlocked ? 3 : (3 - remaining);
+        localStorage.setItem('cetakinstan_failed_pin_attempts', newFailed.toString());
+        if (data.isBlocked || newFailed >= 3) {
+          localStorage.setItem('cetakinstan_is_blocked_moderator', 'true');
+        }
       }
       return data;
     }
@@ -104,10 +123,23 @@ export async function loginAdmin(pin: string): Promise<AdminLoginResponse> {
     };
   }
 
+  // Handle wrong attempt locally
+  const nextFailed = currentLocalFailed + 1;
+  const remaining = Math.max(0, 3 - nextFailed);
+  const isBlocked = nextFailed >= 3;
+
+  localStorage.setItem('cetakinstan_failed_pin_attempts', nextFailed.toString());
+  if (isBlocked) {
+    localStorage.setItem('cetakinstan_is_blocked_moderator', 'true');
+  }
+
   return {
     success: false,
-    remainingAttempts: 2,
-    message: 'PIN / Password Salah! Periksa kembali password Anda.',
+    isBlocked,
+    remainingAttempts: remaining,
+    message: isBlocked
+      ? 'PIN Salah 3x! Akses login Moderator diblokir. Silakan gunakan tombol Buka Blokir.'
+      : `PIN / Password Salah! Sisa percobaan login: ${remaining}x lagi.`,
   };
 }
 
