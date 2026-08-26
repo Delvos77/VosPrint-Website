@@ -1,0 +1,8 @@
+{
+  "pinHash": "aa9e5387c49e755a1064acda81a5335d53d0f9551ec41718e8896004f92c8f37259af55190d189f67455c78d06e15fb87b78ad12e42ed61756a3985384b63ef6",
+  "salt": "3e7b3121dbc3893cb3d1129fdad05bfd",
+  "updatedAt": "2026-08-26T07:22:00.000Z",
+  "isDefaultPin": true,
+  "failedAttempts": {},
+  "blockedDevices": []
+}

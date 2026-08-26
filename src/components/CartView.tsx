@@ -143,8 +143,10 @@ export default function CartView({
     message += `=============================\n\n`;
     message += `_Mohon diproses pesanannya ya Admin vosprint, file desain siap cetak sudah dilampirkan atau akan dikoordinasikan. Terima kasih!_`;
 
-    // Encode URL
-    const targetPhone = WHATSAPP_NUMBER_DEFAULT; 
+    // Encode URL with dynamic WA number from store settings
+    const savedWa = localStorage.getItem('cetakinstan_wa_number');
+    const rawNumber = savedWa ? savedWa.replace(/[^0-9]/g, '') : WHATSAPP_NUMBER_DEFAULT;
+    const targetPhone = rawNumber.startsWith('0') ? '62' + rawNumber.slice(1) : rawNumber;
     const waUrl = `https://wa.me/${targetPhone}?text=${encodeURIComponent(message)}`;
 
     // Buka WhatsApp di tab baru

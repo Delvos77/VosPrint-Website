@@ -5,7 +5,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { Lock, X, ShieldCheck, AlertCircle, Eye, EyeOff, ShieldAlert, CheckCircle2, Loader2, KeyRound } from 'lucide-react';
-import { loginAdmin } from '../utils/adminAuth';
+import { loginAdmin, resetAdminLockout } from '../utils/adminAuth';
 
 export interface BlockedClient {
   id: string;
@@ -21,27 +21,25 @@ interface AdminPinModalProps {
   onSuccess: () => void;
 }
 
-export default function AdminPinModal({ isOpen, onClose, onSuccess }: AdminPinModalProps) {
+export default function AdminPinModal({
+  isOpen,
+  onClose,
+  onSuccess,
+}: AdminPinModalProps) {
   const [pinInput, setPinInput] = useState<string>('');
   const [showPin, setShowPin] = useState<boolean>(false);
   const [error, setError] = useState<string>('');
-  const [failedCount, setFailedCount] = useState<number>(0);
   const [isBlocked, setIsBlocked] = useState<boolean>(false);
+  const [failedCount, setFailedCount] = useState<number>(0);
   const [isLoading, setIsLoading] = useState<boolean>(false);
 
-  // Check blocked status on load
+  // Check and clear blocked status on open
   useEffect(() => {
     if (isOpen) {
-      const blockedFlag = localStorage.getItem('cetakinstan_is_blocked_moderator');
-      const attempts = parseInt(localStorage.getItem('cetakinstan_failed_pin_attempts') || '0', 10);
-      
-      if (blockedFlag === 'true' || attempts >= 3) {
-        setIsBlocked(true);
-        setFailedCount(attempts);
-      } else {
-        setIsBlocked(false);
-        setFailedCount(attempts);
-      }
+      // Auto clear any stale client lockout so user can enter their password immediately
+      resetAdminLockout();
+      setIsBlocked(false);
+      setFailedCount(0);
       setPinInput('');
       setError('');
     }
@@ -54,13 +52,8 @@ export default function AdminPinModal({ isOpen, onClose, onSuccess }: AdminPinMo
     e.preventDefault();
     setError('');
 
-    if (isBlocked) {
-      setError('Akses login Moderator diblokir karena percobaan PIN salah 3x.');
-      return;
-    }
-
     if (!pinInput.trim()) {
-      setError('PIN tidak boleh kosong.');
+      setError('PIN/Password tidak boleh kosong.');
       return;
     }
 
@@ -70,7 +63,6 @@ export default function AdminPinModal({ isOpen, onClose, onSuccess }: AdminPinMo
       const result = await loginAdmin(pinInput.trim());
 
       if (result.success) {
-        // Success! Reset failed attempts
         setFailedCount(0);
         setIsBlocked(false);
         onSuccess();
@@ -87,7 +79,7 @@ export default function AdminPinModal({ isOpen, onClose, onSuccess }: AdminPinMo
           const newFailed = 3 - remaining;
           setFailedCount(newFailed);
           localStorage.setItem('cetakinstan_failed_pin_attempts', newFailed.toString());
-          setError(result.message || `PIN Salah! Sisa percobaan login: ${remaining}x lagi.`);
+          setError(result.message || `PIN/Password Salah! Sisa percobaan login: ${remaining}x lagi.`);
         }
       }
     } catch (err: any) {
@@ -150,16 +142,32 @@ export default function AdminPinModal({ isOpen, onClose, onSuccess }: AdminPinMo
               </div>
             </div>
 
-            <p className="text-[11px] text-center text-slate-500 dark:text-slate-400">
-              Buka status blokir melalui panel keamanan pengelola atau hubungi Administrator.
-            </p>
+            <div className="space-y-2 pt-1">
+              <button
+                type="button"
+                onClick={async () => {
+                  setIsLoading(true);
+                  await resetAdminLockout();
+                  setIsBlocked(false);
+                  setFailedCount(0);
+                  setError('');
+                  setIsLoading(false);
+                }}
+                disabled={isLoading}
+                className="w-full rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs py-3 transition shadow flex items-center justify-center space-x-1.5"
+              >
+                <KeyRound className="h-4 w-4" />
+                <span>Buka Blokir & Masukkan Password</span>
+              </button>
 
-            <button
-              onClick={resetAndClose}
-              className="w-full rounded-xl bg-slate-800 hover:bg-slate-700 text-white font-bold text-xs py-3 transition"
-            >
-              Kembali ke Website Spectator
-            </button>
+              <button
+                type="button"
+                onClick={resetAndClose}
+                className="w-full rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 font-bold text-xs py-2.5 transition"
+              >
+                Kembali ke Website Spectator
+              </button>
+            </div>
           </div>
         ) : (
           /* SECURE PIN INPUT FORM */
@@ -167,7 +175,7 @@ export default function AdminPinModal({ isOpen, onClose, onSuccess }: AdminPinMo
             <div>
               <div className="flex items-center justify-between mb-1.5">
                 <label className="text-xs font-bold text-slate-700 dark:text-slate-300">
-                  Masukkan PIN Rahasia Admin
+                  Masukkan PIN / Password Admin
                 </label>
                 {failedCount > 0 && (
                   <span className="text-[10px] font-bold text-amber-500">
@@ -178,7 +186,7 @@ export default function AdminPinModal({ isOpen, onClose, onSuccess }: AdminPinMo
               <div className="relative">
                 <input
                   type={showPin ? 'text' : 'password'}
-                  maxLength={12}
+                  maxLength={30}
                   value={pinInput}
                   onChange={(e) => setPinInput(e.target.value)}
                   placeholder="••••••••"

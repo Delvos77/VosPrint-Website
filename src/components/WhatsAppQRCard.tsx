@@ -3,8 +3,9 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { QrCode, Phone, MessageSquare, ExternalLink, Upload, RefreshCw, Check, Sparkles } from 'lucide-react';
+import { fetchCentralStoreData, syncStoreSettingsToServer } from '../utils/storeApi';
 
 interface WhatsAppQRCardProps {
   role?: 'buyer' | 'moderator';
@@ -26,13 +27,37 @@ export default function WhatsAppQRCard({ role = 'buyer' }: WhatsAppQRCardProps) 
 
   const [isEditing, setIsEditing] = useState<boolean>(false);
   const [tempNumber, setTempNumber] = useState<string>(waNumber);
+  const [isSaving, setIsSaving] = useState<boolean>(false);
+
+  // Sync settings with server on mount
+  useEffect(() => {
+    fetchCentralStoreData().then((data) => {
+      if (data?.storeSettings) {
+        if (data.storeSettings.whatsappNumber) {
+          setWaNumber(data.storeSettings.whatsappNumber);
+          setTempNumber(data.storeSettings.whatsappNumber);
+          localStorage.setItem('cetakinstan_wa_number', data.storeSettings.whatsappNumber);
+        }
+        if (typeof data.storeSettings.customQrImage === 'string') {
+          setCustomQrImage(data.storeSettings.customQrImage);
+          localStorage.setItem('cetakinstan_wa_qr_image', data.storeSettings.customQrImage);
+        }
+      }
+    });
+  }, []);
 
   const cleanWaNumber = waNumber.replace(/[^0-9]/g, '');
   const waUrl = `https://wa.me/${cleanWaNumber.startsWith('0') ? '62' + cleanWaNumber.slice(1) : cleanWaNumber}?text=Halo%20Admin%20vosprint%2C%20saya%20ingin%20bertanya%20mengenai%20layanan%20cetak`;
 
-  const handleSaveConfig = () => {
+  const handleSaveConfig = async () => {
+    setIsSaving(true);
     setWaNumber(tempNumber);
     localStorage.setItem('cetakinstan_wa_number', tempNumber);
+    await syncStoreSettingsToServer({
+      whatsappNumber: tempNumber,
+      customQrImage
+    });
+    setIsSaving(false);
     setIsEditing(false);
   };
 
@@ -44,18 +69,26 @@ export default function WhatsAppQRCard({ role = 'buyer' }: WhatsAppQRCardProps) 
         return;
       }
       const reader = new FileReader();
-      reader.onload = (event) => {
+      reader.onload = async (event) => {
         const base64 = event.target?.result as string;
         setCustomQrImage(base64);
         localStorage.setItem('cetakinstan_wa_qr_image', base64);
+        await syncStoreSettingsToServer({
+          whatsappNumber: waNumber,
+          customQrImage: base64
+        });
       };
       reader.readAsDataURL(file);
     }
   };
 
-  const handleResetQr = () => {
+  const handleResetQr = async () => {
     setCustomQrImage('');
     localStorage.removeItem('cetakinstan_wa_qr_image');
+    await syncStoreSettingsToServer({
+      whatsappNumber: waNumber,
+      customQrImage: ''
+    });
   };
 
   return (

@@ -8,6 +8,7 @@ import { X, Sparkles, LayoutGrid, ArrowRight, Search, Plus, Trash2, Edit3, Image
 import { motion, AnimatePresence } from 'motion/react';
 import { DesignTemplate, ProductCategory, Product } from '../types';
 import { DESIGN_TEMPLATES } from '../data/templates';
+import { fetchCentralStoreData, syncTemplatesToServer } from '../utils/storeApi';
 
 interface DesignTemplatesModalProps {
   products: Product[];
@@ -38,10 +39,21 @@ export default function DesignTemplatesModal({
     return DESIGN_TEMPLATES;
   });
 
-  // Save to localStorage when templates change
+  // Fetch templates from server on mount
+  useEffect(() => {
+    fetchCentralStoreData().then((data) => {
+      if (data?.templates && Array.isArray(data.templates) && data.templates.length > 0) {
+        setTemplates(data.templates);
+        localStorage.setItem('cetakinstan_custom_templates', JSON.stringify(data.templates));
+      }
+    });
+  }, []);
+
+  // Save to localStorage & sync to centralized server when templates change
   const saveTemplates = (newList: DesignTemplate[]) => {
     setTemplates(newList);
     localStorage.setItem('cetakinstan_custom_templates', JSON.stringify(newList));
+    syncTemplatesToServer(newList);
   };
 
   // State for Add/Edit Form Modal

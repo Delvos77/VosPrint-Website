@@ -75,14 +75,8 @@ export async function loginAdmin(pin: string): Promise<AdminLoginResponse> {
     }
     return data;
   } catch (err) {
-    // Fallback to local verification if network error
-    console.warn('[AdminAuth] Server unreachable, attempting local fallback:', err);
-    const savedPin = localStorage.getItem('cetakinstan_admin_pin') || '2457';
-    if (pin.trim() === savedPin || pin.trim() === '1234') {
-      localStorage.setItem('cetakinstan_role', 'moderator');
-      return { success: true, message: 'Login Offline Berhasil!' };
-    }
-    return { success: false, message: 'Gagal terhubung ke server atau PIN tidak cocok.' };
+    console.error('[AdminAuth] Server communication error:', err);
+    return { success: false, message: 'Gagal terhubung ke server otentikasi. Pastikan koneksi internet aktif.' };
   }
 }
 
@@ -110,8 +104,7 @@ export async function verifyAdminSession(): Promise<boolean> {
       return false;
     }
   } catch (err) {
-    // Keep local session if server temporary offline
-    return !!token;
+    return false;
   }
 }
 
@@ -131,15 +124,14 @@ export async function changeAdminPin(currentPin: string, newPin: string): Promis
     });
 
     const data = await res.json();
-    if (data.success) {
-      if (data.token) setSessionToken(data.token);
-      localStorage.setItem('cetakinstan_admin_pin', newPin.trim());
+    if (data.success && data.token) {
+      setSessionToken(data.token);
     }
+    // Clean up any legacy plaintext PIN from localStorage if present
+    localStorage.removeItem('cetakinstan_admin_pin');
     return data;
   } catch (err) {
-    // Local fallback
-    localStorage.setItem('cetakinstan_admin_pin', newPin.trim());
-    return { success: true, message: 'PIN berhasil disimpan secara lokal.' };
+    return { success: false, message: 'Gagal memperbarui PIN di server. Terjadi gangguan koneksi.' };
   }
 }
 
@@ -169,6 +161,25 @@ export async function unblockDevice(id?: string): Promise<boolean> {
     return res.ok;
   } catch (err) {
     return false;
+  }
+}
+
+/**
+ * Reset local and server lockout for current device
+ */
+export async function resetAdminLockout(): Promise<boolean> {
+  localStorage.removeItem('cetakinstan_is_blocked_moderator');
+  localStorage.removeItem('cetakinstan_failed_pin_attempts');
+  const clientId = getClientId();
+  try {
+    const res = await fetch('/api/admin/reset-lockout', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ clientId }),
+    });
+    return res.ok;
+  } catch (err) {
+    return true;
   }
 }
 

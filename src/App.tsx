@@ -45,6 +45,16 @@ import AdminPinModal from './components/AdminPinModal';
 import AdminSecuritySettingsModal from './components/AdminSecuritySettingsModal';
 import VosPrintLogo from './components/VosPrintLogo';
 import { verifyAdminSession, logoutAdmin } from './utils/adminAuth';
+import {
+  fetchCentralStoreData,
+  syncProductsToServer,
+  syncSingleProductToServer,
+  deleteProductFromServer,
+  syncStoreHoursToServer,
+  submitOrderToServer,
+  updateOrderStatusOnServer,
+  resetCatalogOnServer
+} from './utils/storeApi';
 
 interface Toast {
   id: string;
@@ -152,8 +162,11 @@ export default function App() {
   const [isAdminSecurityModalOpen, setIsAdminSecurityModalOpen] = useState<boolean>(false);
   const [toasts, setToasts] = useState<Toast[]>([]);
 
-  // Auto verify Admin Session and open Admin PIN modal if URL hash is #admin
+  // Auto verify Admin Session and Hydrate Data from Centralized Server
   useEffect(() => {
+    // Purge legacy plaintext PIN from client localStorage for complete security
+    localStorage.removeItem('cetakinstan_admin_pin');
+
     if (role === 'moderator') {
       verifyAdminSession().then((isValid) => {
         if (!isValid) {
@@ -165,6 +178,45 @@ export default function App() {
     if (window.location.hash === '#admin' || window.location.search.includes('admin=true')) {
       setIsAdminPinModalOpen(true);
     }
+
+    // 1. Initial hydration from Centralized Server Data
+    const loadServerData = async () => {
+      const serverData = await fetchCentralStoreData();
+      if (serverData) {
+        if (Array.isArray(serverData.products) && serverData.products.length > 0) {
+          setProductsDb(serverData.products);
+          localStorage.setItem('cetakinstan_products_db', JSON.stringify(serverData.products));
+        }
+        if (serverData.storeHours) {
+          setStoreHours(serverData.storeHours);
+          localStorage.setItem('cetakinstan_store_hours', JSON.stringify(serverData.storeHours));
+        }
+        if (Array.isArray(serverData.orders) && serverData.orders.length > 0) {
+          setOrders(serverData.orders);
+          localStorage.setItem('cetakinstan_orders', JSON.stringify(serverData.orders));
+        }
+      }
+    };
+
+    loadServerData();
+
+    // 2. Periodic background live-sync (every 12 seconds) so any device/visitor sees updates live
+    const interval = setInterval(async () => {
+      const serverData = await fetchCentralStoreData();
+      if (serverData) {
+        if (Array.isArray(serverData.products) && serverData.products.length > 0) {
+          setProductsDb(serverData.products);
+        }
+        if (serverData.storeHours) {
+          setStoreHours(serverData.storeHours);
+        }
+        if (Array.isArray(serverData.orders) && serverData.orders.length > 0) {
+          setOrders(serverData.orders);
+        }
+      }
+    }, 12000);
+
+    return () => clearInterval(interval);
   }, []);
 
   // 1.2. Store Hours State
@@ -296,7 +348,10 @@ export default function App() {
       return nextOrders;
     });
 
-    showToast(`Pesanan #${newOrder.id} berhasil dicatat & masuk antrean!`, 'success');
+    // Save to centralized server
+    submitOrderToServer(newOrder);
+
+    showToast(`Pesanan #${newOrder.id} berhasil dicatat & masuk antrean server!`, 'success');
   };
 
   const handleUpdateOrderStatus = (orderId: string, newStatus: OrderStatus) => {
@@ -319,6 +374,9 @@ export default function App() {
       return nextOrders;
     });
 
+    // Update status in centralized server
+    updateOrderStatusOnServer(orderId, newStatus);
+
     const statusLabels: Record<OrderStatus, string> = {
       pending: 'Menunggu Konfirmasi',
       checking_file: 'Pengecekan File',
@@ -333,7 +391,9 @@ export default function App() {
 
   const handleSaveStoreHours = (updated: StoreHours) => {
     setStoreHours(updated);
-    showToast('Jam operasional toko berhasil diperbarui!', 'success');
+    // Sync store hours to centralized server
+    syncStoreHoursToServer(updated);
+    showToast('Jam operasional toko berhasil diperbarui & disimpan di server!', 'success');
   };
 
   // Toast Notification triggers
@@ -349,23 +409,33 @@ export default function App() {
   const handleSaveAdminProduct = (updatedProduct: Product) => {
     const updatedList = productsDb.map((p) => p.id === updatedProduct.id ? updatedProduct : p);
     setProductsDb(updatedList);
-    showToast(`Data & harga database untuk ${updatedProduct.name} berhasil diperbarui!`, 'success');
+    // Sync to centralized server
+    syncSingleProductToServer(updatedProduct);
+    syncProductsToServer(updatedList);
+    showToast(`Data & harga server untuk "${updatedProduct.name}" berhasil diperbarui!`, 'success');
   };
 
   const handleCreateProduct = (newProduct: Product) => {
-    setProductsDb((prev) => [...prev, newProduct]);
+    const nextList = [...productsDb, newProduct];
+    setProductsDb(nextList);
     setIsCreateProductModalOpen(false);
-    showToast(`Menu jasa baru "${newProduct.name}" berhasil diterbitkan!`, 'success');
+    // Sync new product to server
+    syncSingleProductToServer(newProduct);
+    syncProductsToServer(nextList);
+    showToast(`Menu jasa baru "${newProduct.name}" berhasil diterbitkan ke server!`, 'success');
   };
 
   const handleDeleteProduct = (productId: string) => {
     const target = productsDb.find((p) => p.id === productId);
     const prodName = target ? target.name : 'Jasa cetak';
-    setProductsDb((prev) => prev.filter((p) => p.id !== productId));
+    const nextList = productsDb.filter((p) => p.id !== productId);
+    setProductsDb(nextList);
     if (activeAdminEditProduct?.id === productId) {
       setActiveAdminEditProduct(null);
     }
-    showToast(`Katalog jasa "${prodName}" berhasil dihapus dari database!`, 'info');
+    // Delete on centralized server
+    deleteProductFromServer(productId);
+    showToast(`Katalog jasa "${prodName}" berhasil dihapus dari server!`, 'info');
   };
 
   const handleSaveMaterials = (productId: string, updatedMaterials: any[]) => {
@@ -377,14 +447,17 @@ export default function App() {
       };
       const updatedList = productsDb.map((p) => p.id === productId ? updatedProduct : p);
       setProductsDb(updatedList);
-      showToast('Katalog bahan berhasil diperbarui!', 'success');
+      syncSingleProductToServer(updatedProduct);
+      syncProductsToServer(updatedList);
+      showToast('Katalog bahan berhasil diperbarui di server!', 'success');
     }
   };
 
   const handleResetPrices = () => {
-    if (window.confirm('Apakah Anda yakin ingin mengembalikan seluruh database harga ke standar pabrik?')) {
+    if (window.confirm('Apakah Anda yakin ingin mengembalikan seluruh database harga ke standar pabrik di server?')) {
       setProductsDb(PRODUCTS);
-      showToast('Seluruh harga database produk telah dikembalikan ke standar.', 'info');
+      resetCatalogOnServer();
+      showToast('Seluruh harga database produk telah di-reset ke standar di server.', 'info');
     }
   };
 
