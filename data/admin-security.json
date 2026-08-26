@@ -1,8 +1,8 @@
 {
-  "pinHash": "aa9e5387c49e755a1064acda81a5335d53d0f9551ec41718e8896004f92c8f37259af55190d189f67455c78d06e15fb87b78ad12e42ed61756a3985384b63ef6",
+  "pinHash": "bb9ce45265b0de41580e256b96953ec7e4668017e8313c1bff58c12e9681671af82ba965a24689116002b3153b4ebebd6419e6b2153e13b85ed571e3cebc7638",
   "salt": "3e7b3121dbc3893cb3d1129fdad05bfd",
-  "updatedAt": "2026-08-26T07:22:00.000Z",
-  "isDefaultPin": true,
+  "updatedAt": "2026-08-26T07:28:00.000Z",
+  "isDefaultPin": false,
   "failedAttempts": {},
   "blockedDevices": []
 }

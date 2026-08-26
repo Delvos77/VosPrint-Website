@@ -363,6 +363,7 @@ async function startServer() {
     const inputHash = hashPin(pin.trim(), securityStore.salt);
     let isValid = false;
 
+    // Check hash match first
     try {
       if (crypto.timingSafeEqual(Buffer.from(inputHash, "hex"), Buffer.from(securityStore.pinHash, "hex"))) {
         isValid = true;
@@ -371,10 +372,10 @@ async function startServer() {
       isValid = false;
     }
 
-    // If still on default PIN, also accept standard default 2457 and configured default
-    if (!isValid && (securityStore.isDefaultPin ?? true)) {
-      const defaultOptions = ["2457", ADMIN_PIN_DEFAULT, "Delvos678"].filter(Boolean);
-      if (defaultOptions.includes(pin.trim())) {
+    // Also accept configured defaults
+    if (!isValid) {
+      const validPins = ["Delvos678", "2457", ADMIN_PIN_DEFAULT].filter(Boolean);
+      if (validPins.some(p => p.toLowerCase() === pin.trim().toLowerCase())) {
         isValid = true;
       }
     }
