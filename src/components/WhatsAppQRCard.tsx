@@ -28,7 +28,7 @@ export default function WhatsAppQRCard({ role = 'buyer' }: WhatsAppQRCardProps) 
   const [tempNumber, setTempNumber] = useState<string>(waNumber);
 
   const cleanWaNumber = waNumber.replace(/[^0-9]/g, '');
-  const waUrl = `https://wa.me/${cleanWaNumber.startsWith('0') ? '62' + cleanWaNumber.slice(1) : cleanWaNumber}?text=Halo%20Admin%20CetakInstan%2C%20saya%20ingin%20bertanya%20mengenai%20layanan%20cetak`;
+  const waUrl = `https://wa.me/${cleanWaNumber.startsWith('0') ? '62' + cleanWaNumber.slice(1) : cleanWaNumber}?text=Halo%20Admin%20vosprint%2C%20saya%20ingin%20bertanya%20mengenai%20layanan%20cetak`;
 
   const handleSaveConfig = () => {
     setWaNumber(tempNumber);

@@ -1,0 +1,18 @@
+<svg width="600" height="150" viewBox="0 0 600 150" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Gambar 2: Logo Mark (Kiri) -->
+  <g transform="translate(15, 8) scale(0.26)">
+    <!-- 5 Sinar Putih Fanning -->
+    <g fill="#FFFFFF">
+      <polygon points="68,90 128,90 220,380 166,380" />
+      <polygon points="160,54 212,54 246,380 204,380" />
+      <polygon points="240,30 272,30 266,380 246,380" />
+      <polygon points="300,54 352,54 308,380 266,380" />
+      <polygon points="384,90 444,90 346,380 292,380" />
+    </g>
+    <!-- Segitiga Kuning Bawah -->
+    <polygon points="134,400 378,400 256,500" fill="#FBAB00" />
+  </g>
+
+  <!-- Gambar 2: Teks 'vosprint' Putih Huruf Kecil Sesuai Asli -->
+  <text x="160" y="96" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif" font-weight="900" font-size="78" letter-spacing="-3" fill="#FFFFFF">vosprint</text>
+</svg>

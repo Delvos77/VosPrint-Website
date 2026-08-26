@@ -8,6 +8,7 @@ import { X, Printer, Download, CheckCircle2, ShieldCheck, Phone, MapPin, Calenda
 import { motion } from 'motion/react';
 import { OrderRecord } from '../types';
 import { formatIDR, WHATSAPP_NUMBER_DEFAULT } from '../data';
+import VosPrintLogo from './VosPrintLogo';
 
 interface InvoiceModalProps {
   order: OrderRecord;
@@ -26,12 +27,12 @@ export default function InvoiceModal({ order, onClose, hideSensitiveData = false
   };
 
   const handleShareWa = () => {
-    let msg = `*NOTA OFFICIAL CETAKINSTAN*\n`;
+    let msg = `*NOTA RESMI VOSPRINT*\n`;
     msg += `No. Nota: ${order.id}\n`;
     msg += `Nama: ${order.customerName}\n`;
     msg += `Total: ${formatIDR(order.totalAmount)}\n`;
     msg += `Status: ${order.status.toUpperCase()}\n\n`;
-    msg += `Terima kasih telah memesan di CetakInstan Hub!`;
+    msg += `Terima kasih telah memesan di vosprint!`;
     const url = `https://wa.me/${WHATSAPP_NUMBER_DEFAULT}?text=${encodeURIComponent(msg)}`;
     window.open(url, '_blank', 'noopener,noreferrer');
   };
@@ -89,19 +90,9 @@ export default function InvoiceModal({ order, onClose, hideSensitiveData = false
           {/* Header Branding & Nota Metadata */}
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center border-b-2 border-slate-900 pb-5 gap-4">
             <div>
-              <div className="flex items-center space-x-2">
-                <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-slate-900 text-amber-400 font-black">
-                  <Printer className="h-5 w-5" />
-                </div>
-                <div>
-                  <h1 className="text-xl font-black tracking-tight text-slate-900">
-                    Cetak<span className="text-amber-600">Instan</span>
-                  </h1>
-                  <p className="text-[10px] text-slate-500 font-semibold tracking-wider uppercase">Pusat Cetak Digital & Offset</p>
-                </div>
-              </div>
+              <VosPrintLogo size="lg" />
               <p className="text-xs text-slate-500 mt-2">Jl. Percetakan Negara No. 45, Paseban, Senen, Jakarta Pusat 10440</p>
-              <p className="text-xs text-slate-500">WA: +62 853-3949-9687 | Email: order@cetakinstan.com</p>
+              <p className="text-xs text-slate-500">WA: +62 853-3949-9687 | Email: order@vosprint.com</p>
             </div>
 
             <div className="text-left md:text-right space-y-1 bg-slate-50 p-3 rounded-xl border border-slate-200">
@@ -196,7 +187,7 @@ export default function InvoiceModal({ order, onClose, hideSensitiveData = false
           {/* Signatures */}
           <div className="grid grid-cols-2 gap-8 pt-8 text-center text-xs text-slate-600 border-t border-slate-200">
             <div>
-              <p className="font-semibold mb-12">Hormat Kami (Operator CetakInstan)</p>
+              <p className="font-semibold mb-12">Hormat Kami (Operator vosprint)</p>
               <p className="font-bold text-slate-900">( ______________________ )</p>
             </div>
             <div>

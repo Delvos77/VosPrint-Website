@@ -1,8 +1,44 @@
 @import "tailwindcss";
 
+@theme {
+  --color-amber-300: #FFE066;
+  --color-amber-400: #FFD633;
+  --color-amber-500: #FFCC00;
+  --color-amber-600: #E6B800;
+  --color-amber-700: #B38F00;
+  --color-amber-800: #806600;
+}
+
+@variant dark (&:where(.dark, .dark *));
+
 @layer base {
   body {
     @apply antialiased selection:bg-white selection:text-black;
+  }
+  
+  /* Super smooth, premium slow crossfade for light/dark mode toggling */
+  html,
+  body,
+  header,
+  footer,
+  nav,
+  div,
+  button,
+  span,
+  p,
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6,
+  input,
+  textarea,
+  select,
+  a {
+    transition-property: color, background-color, border-color, text-decoration-color, fill, stroke, box-shadow, opacity;
+    transition-duration: 600ms;
+    transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
   }
 }
 

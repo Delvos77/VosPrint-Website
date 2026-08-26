@@ -23,6 +23,7 @@ import {
   Layers
 } from 'lucide-react';
 import { ProductCategory, StoreHours } from '../types';
+import VosPrintLogo from './VosPrintLogo';
 
 interface NavbarProps {
   currentTab: 'catalog' | 'cart' | 'info' | 'orders';
@@ -76,39 +77,32 @@ export default function Navbar({
 
   return (
     <>
-      {/* ====== DESKTOP & TABLET TOP HEADER (Exact Reference Style) ====== */}
+      {/* ====== DESKTOP & TABLET TOP HEADER (Comfort & Elegant Theme) ====== */}
       <header 
-        className="sticky top-0 z-40 w-full border-b border-white/10 bg-[#0c0d10]/95 backdrop-blur-md text-white transition-colors duration-200"
+        className="sticky top-0 z-40 w-full border-b border-slate-200 dark:border-white/10 bg-white/95 dark:bg-[#0c0d10]/95 backdrop-blur-md text-slate-800 dark:text-white transition-colors duration-500 shadow-xs dark:shadow-none"
         id="desktop-header"
       >
         <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3 md:px-6">
           
-          {/* 1. Left Logo (Sleek Geometric Emblem & SUPPLY-Style Typography) */}
+          {/* 1. Left Logo (VosPrint Brand Mark & Wordmark) */}
           <button 
             onClick={() => { setCurrentTab('catalog'); setActiveCategory('all'); }} 
-            className="flex items-center space-x-2.5 transition hover:opacity-90 text-left group"
+            className="flex items-center transition hover:opacity-90 text-left"
             id="nav-logo-btn"
+            title="vosprint - Beranda"
           >
-            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-white text-black font-black tracking-tight shadow-md group-hover:scale-105 transition-transform" id="logo-badge">
-              <span className="text-base tracking-tighter">⚡</span>
-            </div>
-            <div>
-              <div className="text-base font-extrabold tracking-widest text-white leading-none">
-                CETAK<span className="text-neutral-400 font-light ml-0.5">INSTAN</span>
-              </div>
-              <span className="text-[9px] text-neutral-400 font-medium tracking-wider uppercase block mt-0.5">Powerhouse Printing</span>
-            </div>
+            <VosPrintLogo size="md" />
           </button>
 
-          {/* 2. Center Pill Navigation (Exact Floating Segmented Pill Menu) */}
-          <nav className="hidden md:flex items-center bg-[#15171d] border border-white/10 rounded-full p-1 shadow-inner text-xs font-semibold" id="desktop-nav-menu">
+          {/* 2. Center Pill Navigation (Comfort Adaptive Segmented Pill Menu) */}
+          <nav className="hidden md:flex items-center bg-slate-100 dark:bg-[#15171d] border border-slate-200 dark:border-white/10 rounded-full p-1 shadow-inner text-xs font-semibold" id="desktop-nav-menu">
             <button
               id="tab-catalog-btn"
               onClick={() => { setCurrentTab('catalog'); setActiveCategory('all'); }}
               className={`px-4 py-1.5 rounded-full transition-all duration-200 ${
                 currentTab === 'catalog'
-                  ? 'bg-white text-black font-extrabold shadow-sm'
-                  : 'text-neutral-300 hover:text-white hover:bg-white/5'
+                  ? 'bg-[#FFCC00] text-slate-950 font-extrabold shadow-sm'
+                  : 'text-slate-600 dark:text-neutral-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-200/50 dark:hover:bg-white/5'
               }`}
             >
               Discover
@@ -118,10 +112,10 @@ export default function Navbar({
               <button
                 id="tab-templates-btn"
                 onClick={onOpenTemplatesModal}
-                className="px-3.5 py-1.5 rounded-full text-neutral-300 hover:text-white hover:bg-white/5 transition-all duration-200 flex items-center space-x-1.5"
+                className="px-3.5 py-1.5 rounded-full text-slate-600 dark:text-neutral-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-200/50 dark:hover:bg-white/5 transition-all duration-200 flex items-center space-x-1.5"
               >
                 <span>Templates</span>
-                <span className="bg-amber-500/20 text-amber-300 border border-amber-500/30 text-[9px] px-1.5 py-0.2 rounded-full font-bold">PRO</span>
+                <span className="bg-[#FFCC00]/15 text-amber-600 dark:bg-amber-500/20 dark:text-[#FFCC00] border border-amber-500/30 text-[9px] px-1.5 py-0.2 rounded-full font-bold">PRO</span>
               </button>
             )}
 
@@ -130,8 +124,8 @@ export default function Navbar({
               onClick={() => setCurrentTab('orders')}
               className={`px-3.5 py-1.5 rounded-full transition-all duration-200 ${
                 currentTab === 'orders'
-                  ? 'bg-white text-black font-extrabold shadow-sm'
-                  : 'text-neutral-300 hover:text-white hover:bg-white/5'
+                  ? 'bg-[#FFCC00] text-slate-950 font-extrabold shadow-sm'
+                  : 'text-slate-600 dark:text-neutral-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-200/50 dark:hover:bg-white/5'
               }`}
             >
               Tracking
@@ -142,8 +136,8 @@ export default function Navbar({
               onClick={() => setCurrentTab('info')}
               className={`px-3.5 py-1.5 rounded-full transition-all duration-200 ${
                 currentTab === 'info'
-                  ? 'bg-white text-black font-extrabold shadow-sm'
-                  : 'text-neutral-300 hover:text-white hover:bg-white/5'
+                  ? 'bg-[#FFCC00] text-slate-950 font-extrabold shadow-sm'
+                  : 'text-slate-600 dark:text-neutral-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-200/50 dark:hover:bg-white/5'
               }`}
             >
               Workshop
@@ -154,7 +148,7 @@ export default function Navbar({
           <div className="flex items-center space-x-2 md:space-x-3" id="desktop-actions">
             
             {/* Social / WhatsApp quick connect */}
-            <div className="hidden lg:flex items-center space-x-2 text-neutral-400">
+            <div className="hidden lg:flex items-center space-x-2 text-neutral-400 dark:text-neutral-400">
               <a
                 href="https://wa.me/6285339499687"
                 target="_blank"
@@ -192,7 +186,7 @@ export default function Navbar({
                   <button
                     onClick={onOpenAdminSecurityModal}
                     id="admin-security-settings-btn"
-                    className="flex items-center space-x-1 rounded-full bg-[#181a20] text-amber-400 hover:bg-[#22262e] border border-white/10 px-2.5 py-1.5 text-xs font-bold transition"
+                    className="flex items-center space-x-1 rounded-full bg-slate-100 dark:bg-[#181a20] text-amber-600 dark:text-[#FFCC00] hover:bg-slate-200 dark:hover:bg-[#22262e] border border-slate-200 dark:border-white/10 px-2.5 py-1.5 text-xs font-bold transition"
                     title="Ubah PIN & No WA Admin"
                   >
                     <KeyRound className="h-3.5 w-3.5" />
@@ -203,7 +197,7 @@ export default function Navbar({
               <button
                 onClick={onOpenAdminPinModal}
                 id="admin-login-lock-btn"
-                className="flex h-8 w-8 items-center justify-center rounded-full bg-[#15171d] text-neutral-400 border border-white/10 hover:bg-white/10 hover:text-white transition"
+                className="flex h-8 w-8 items-center justify-center rounded-full bg-slate-100 dark:bg-[#15171d] text-slate-600 dark:text-neutral-400 border border-slate-200 dark:border-white/10 hover:bg-slate-200 hover:text-slate-900 dark:hover:bg-white/10 dark:hover:text-white transition"
                 title="Akses Pengelola Toko"
               >
                 <Lock className="h-3.5 w-3.5" />
@@ -214,13 +208,13 @@ export default function Navbar({
             <button
               id="theme-toggle-btn"
               onClick={toggleTheme}
-              className="flex h-8 w-8 items-center justify-center rounded-full bg-[#15171d] text-neutral-400 border border-white/10 hover:bg-white/10 hover:text-white transition"
+              className="flex h-8 w-8 items-center justify-center rounded-full bg-slate-100 dark:bg-[#15171d] text-slate-600 dark:text-neutral-300 border border-slate-200 dark:border-white/10 hover:bg-slate-200 hover:text-slate-900 dark:hover:bg-white/10 dark:hover:text-white transition"
               title={theme === 'dark' ? 'Ganti ke Mode Terang' : 'Ganti ke Mode Gelap'}
             >
               {theme === 'dark' ? (
-                <Sun className="h-3.5 w-3.5 text-amber-300" />
+                <Sun className="h-3.5 w-3.5 text-amber-400 dark:text-[#FFCC00]" />
               ) : (
-                <Moon className="h-3.5 w-3.5 text-neutral-300" />
+                <Moon className="h-3.5 w-3.5 text-slate-600" />
               )}
             </button>
 
@@ -228,20 +222,20 @@ export default function Navbar({
             <button
               id="cart-drawer-trigger"
               onClick={openCartDrawer}
-              className="relative flex items-center space-x-2 rounded-full bg-[#181a20] border border-white/10 hover:border-white/25 px-3 py-1.5 text-xs font-bold text-white transition shadow-sm"
+              className="relative flex items-center space-x-2 rounded-full bg-slate-100 dark:bg-[#181a20] border border-slate-200 dark:border-white/10 hover:border-slate-300 dark:hover:border-white/20 px-3 py-1.5 text-xs font-bold text-slate-800 dark:text-white transition shadow-xs"
               aria-label="Keranjang Belanja"
             >
-              <ShoppingBag className="h-4 w-4 text-neutral-300" />
-              <span className="hidden sm:inline text-neutral-300">Order</span>
+              <ShoppingBag className="h-4 w-4 text-slate-600 dark:text-neutral-300" />
+              <span className="hidden sm:inline text-slate-700 dark:text-neutral-300">Order</span>
               {cartCount > 0 ? (
                 <span 
                   id="cart-badge-count"
-                  className="flex h-5 min-w-[20px] items-center justify-center rounded-full bg-white text-black px-1.5 text-[10px] font-black"
+                  className="flex h-5 min-w-[20px] items-center justify-center rounded-full bg-[#FFCC00] text-slate-950 px-1.5 text-[10px] font-black"
                 >
                   {cartCount}
                 </span>
               ) : (
-                <span className="text-[10px] text-neutral-500 font-bold">0</span>
+                <span className="text-[10px] text-slate-500 dark:text-neutral-500 font-bold">0</span>
               )}
             </button>
           </div>
@@ -251,13 +245,13 @@ export default function Navbar({
       {/* ====== MOBILE FLOATING BOTTOM NAVIGATION ====== */}
       <nav 
         id="mobile-bottom-nav"
-        className="fixed bottom-4 left-4 right-4 z-50 flex h-15 items-center justify-around rounded-2xl bg-[#0e1014]/95 text-neutral-400 border border-white/10 shadow-2xl backdrop-blur-md md:hidden px-2"
+        className="fixed bottom-4 left-4 right-4 z-50 flex h-15 items-center justify-around rounded-2xl bg-white/95 dark:bg-[#0e1014]/95 text-slate-600 dark:text-neutral-400 border border-slate-200 dark:border-white/10 shadow-2xl backdrop-blur-md md:hidden px-2"
       >
         <button
           id="mobile-nav-catalog"
           onClick={() => setCurrentTab('catalog')}
           className={`flex flex-col items-center justify-center w-14 h-full rounded-xl transition ${
-            currentTab === 'catalog' ? 'text-white font-bold' : 'hover:text-white'
+            currentTab === 'catalog' ? 'text-amber-600 dark:text-[#FFCC00] font-bold' : 'hover:text-slate-900'
           }`}
         >
           <Printer className="h-4 w-4 mb-0.5" />
@@ -268,7 +262,7 @@ export default function Navbar({
           id="mobile-nav-cart"
           onClick={() => setCurrentTab('cart')}
           className={`relative flex flex-col items-center justify-center w-14 h-full rounded-xl transition ${
-            currentTab === 'cart' ? 'text-white font-bold' : 'hover:text-white'
+            currentTab === 'cart' ? 'text-amber-600 dark:text-[#FFCC00] font-bold' : 'hover:text-slate-900'
           }`}
         >
           <ShoppingBag className="h-4 w-4 mb-0.5" />
@@ -276,7 +270,7 @@ export default function Navbar({
           {cartCount > 0 && (
             <span 
               id="mobile-cart-badge"
-              className="absolute top-1 right-2.5 flex h-4 w-4 items-center justify-center rounded-full bg-white text-black text-[8px] font-black"
+              className="absolute top-1 right-2.5 flex h-4 w-4 items-center justify-center rounded-full bg-[#FFCC00] text-slate-950 text-[8px] font-black"
             >
               {cartCount}
             </span>
@@ -287,7 +281,7 @@ export default function Navbar({
           id="mobile-nav-orders"
           onClick={() => setCurrentTab('orders')}
           className={`flex flex-col items-center justify-center w-14 h-full rounded-xl transition ${
-            currentTab === 'orders' ? 'text-white font-bold' : 'hover:text-white'
+            currentTab === 'orders' ? 'text-amber-600 dark:text-[#FFCC00] font-bold' : 'hover:text-slate-900'
           }`}
         >
           <Clock className="h-4 w-4 mb-0.5" />
@@ -298,7 +292,7 @@ export default function Navbar({
           id="mobile-nav-info"
           onClick={() => setCurrentTab('info')}
           className={`flex flex-col items-center justify-center w-14 h-full rounded-xl transition ${
-            currentTab === 'info' ? 'text-white font-bold' : 'hover:text-white'
+            currentTab === 'info' ? 'text-amber-600 dark:text-[#FFCC00] font-bold' : 'hover:text-slate-900'
           }`}
         >
           <Store className="h-4 w-4 mb-0.5" />

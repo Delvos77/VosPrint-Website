@@ -53,9 +53,13 @@ export default function OrderTracker({ orders, onUpdateOrderStatus, role }: Orde
   const [myOrderIds, setMyOrderIds] = useState<string[]>(() => {
     try {
       const saved = localStorage.getItem('cetakinstan_my_order_ids');
-      return saved ? JSON.parse(saved) : [];
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+      }
+      return ['INV-20260819-001'];
     } catch (e) {
-      return [];
+      return ['INV-20260819-001'];
     }
   });
 
@@ -66,7 +70,7 @@ export default function OrderTracker({ orders, onUpdateOrderStatus, role }: Orde
   const [lookupInvoice, setLookupInvoice] = useState<string>('');
   const [lookupPhoneKey, setLookupPhoneKey] = useState<string>('');
   const [lookupError, setLookupError] = useState<string>('');
-  const [verifiedOrder, setVerifiedOrder] = useState<OrderRecord | null>(null);
+  const [verifiedInvoiceId, setVerifiedInvoiceId] = useState<string | null>(null);
 
   // Admin Filtering & Sorting States
   const [adminSearchQuery, setAdminSearchQuery] = useState<string>('');
@@ -74,79 +78,12 @@ export default function OrderTracker({ orders, onUpdateOrderStatus, role }: Orde
   const [timeRangeFilter, setTimeRangeFilter] = useState<'all' | '1h' | 'today' | 'month'>('all');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   
-  // Selected order for right detail view
-  const [selectedOrder, setSelectedOrder] = useState<OrderRecord | null>(null);
-  const [activeInvoiceOrder, setActiveInvoiceOrder] = useState<OrderRecord | null>(null);
+  // Selected order ID for right detail view (reactive)
+  const [selectedOrderId, setSelectedOrderId] = useState<string | null>(null);
+  const [activeInvoiceOrderId, setActiveInvoiceOrderId] = useState<string | null>(null);
 
-  // Auto-select first available order on load depending on role
-  useEffect(() => {
-    if (role === 'moderator') {
-      if (orders.length > 0 && !selectedOrder) {
-        setSelectedOrder(orders[0]);
-      }
-    } else {
-      // Buyer mode: try to select first order belonging to this device
-      const myDeviceOrders = orders.filter((o) => myOrderIds.includes(o.id));
-      if (myDeviceOrders.length > 0 && !selectedOrder) {
-        setSelectedOrder(myDeviceOrders[0]);
-      } else if (orders.length > 0 && !selectedOrder) {
-        setSelectedOrder(orders[0]);
-      }
-    }
-  }, [role, orders, myOrderIds]);
-
-  // Handle 2-Factor Order Lookup
-  const handleVerifyLookup = (e: React.FormEvent) => {
-    e.preventDefault();
-    setLookupError('');
-    const cleanInvoice = lookupInvoice.trim().toUpperCase();
-    const cleanKey = lookupPhoneKey.trim();
-
-    if (!cleanInvoice || !cleanKey) {
-      setLookupError('Mohon isi Nomor Nota dan 4 digit terakhir No. WhatsApp.');
-      return;
-    }
-
-    const target = orders.find((o) => o.id.toUpperCase() === cleanInvoice);
-
-    if (!target) {
-      setLookupError(`Nomor Nota "${cleanInvoice}" tidak ditemukan dalam database.`);
-      return;
-    }
-
-    const waClean = target.whatsapp.replace(/\D/g, '');
-    const keyClean = cleanKey.replace(/\D/g, '');
-    const isMatch = waClean === keyClean || waClean.endsWith(keyClean);
-
-    if (!isMatch) {
-      setLookupError('Verifikasi Gagal: 4 digit No. WA tidak cocok dengan data pemesan nota ini. Demi keamanan, data terlindungi.');
-      return;
-    }
-
-    setVerifiedOrder(target);
-    setSelectedOrder(target);
-
-    if (!myOrderIds.includes(target.id)) {
-      const updated = [target.id, ...myOrderIds];
-      setMyOrderIds(updated);
-      try {
-        localStorage.setItem('cetakinstan_my_order_ids', JSON.stringify(updated));
-      } catch (err) { /* ignore */ }
-    }
-  };
-
-  const maskPhoneNumber = (phone: string) => {
-    if (role === 'moderator') return phone;
-    const cleaned = phone.replace(/\D/g, '');
-    if (cleaned.length < 8) return '****-****';
-    const prefix = cleaned.slice(0, 4);
-    const suffix = cleaned.slice(-4);
-    return `${prefix}-****-${suffix}`;
-  };
-
-  const getStatusIndex = (st: OrderStatus) => {
-    return STATUS_STEPS.findIndex((s) => s.key === st);
-  };
+  // Device-only orders for Buyer Mode
+  const myDeviceOrdersList = orders.filter((o) => myOrderIds.includes(o.id));
 
   // Pending / Holding orders count (pesanan tertahan di proses/pengiriman)
   const stuckOrdersCount = orders.filter((o) => o.status !== 'completed').length;
@@ -193,8 +130,82 @@ export default function OrderTracker({ orders, onUpdateOrderStatus, role }: Orde
       return sortOrder === 'newest' ? timeB - timeA : timeA - timeB;
     });
 
-  // Device-only orders for Buyer Mode
-  const myDeviceOrdersList = orders.filter((o) => myOrderIds.includes(o.id));
+  // Determine active selected order reactively from latest orders prop
+  const selectedOrder: OrderRecord | null = React.useMemo(() => {
+    if (selectedOrderId) {
+      const match = orders.find((o) => o.id === selectedOrderId);
+      if (match) return match;
+    }
+    if (role === 'moderator') {
+      if (adminFilteredOrders.length > 0) return adminFilteredOrders[0];
+      return orders.length > 0 ? orders[0] : null;
+    } else {
+      return myDeviceOrdersList.length > 0 ? myDeviceOrdersList[0] : (orders.length > 0 ? orders[0] : null);
+    }
+  }, [orders, selectedOrderId, role, myDeviceOrdersList, adminFilteredOrders]);
+
+  // Determine active verified order for lookup reactively
+  const verifiedOrder: OrderRecord | null = React.useMemo(() => {
+    if (verifiedInvoiceId) {
+      return orders.find((o) => o.id.toUpperCase() === verifiedInvoiceId.toUpperCase()) || null;
+    }
+    return null;
+  }, [orders, verifiedInvoiceId]);
+
+  const activeInvoiceOrder = orders.find((o) => o.id === activeInvoiceOrderId) || null;
+
+  // Handle 2-Factor Order Lookup
+  const handleVerifyLookup = (e: React.FormEvent) => {
+    e.preventDefault();
+    setLookupError('');
+    const cleanInvoice = lookupInvoice.trim().toUpperCase();
+    const cleanKey = lookupPhoneKey.trim();
+
+    if (!cleanInvoice || !cleanKey) {
+      setLookupError('Mohon isi Nomor Nota dan 4 digit terakhir No. WhatsApp.');
+      return;
+    }
+
+    const target = orders.find((o) => o.id.toUpperCase() === cleanInvoice);
+
+    if (!target) {
+      setLookupError(`Nomor Nota "${cleanInvoice}" tidak ditemukan dalam database.`);
+      return;
+    }
+
+    const waClean = target.whatsapp.replace(/\D/g, '');
+    const keyClean = cleanKey.replace(/\D/g, '');
+    const isMatch = waClean === keyClean || waClean.endsWith(keyClean);
+
+    if (!isMatch) {
+      setLookupError('Verifikasi Gagal: 4 digit No. WA tidak cocok dengan data pemesan nota ini. Demi keamanan, data terlindungi.');
+      return;
+    }
+
+    setVerifiedInvoiceId(target.id);
+    setSelectedOrderId(target.id);
+
+    if (!myOrderIds.includes(target.id)) {
+      const updated = [target.id, ...myOrderIds];
+      setMyOrderIds(updated);
+      try {
+        localStorage.setItem('cetakinstan_my_order_ids', JSON.stringify(updated));
+      } catch (err) { /* ignore */ }
+    }
+  };
+
+  const maskPhoneNumber = (phone: string) => {
+    if (role === 'moderator') return phone;
+    const cleaned = phone.replace(/\D/g, '');
+    if (cleaned.length < 8) return '****-****';
+    const prefix = cleaned.slice(0, 4);
+    const suffix = cleaned.slice(-4);
+    return `${prefix}-****-${suffix}`;
+  };
+
+  const getStatusIndex = (st: OrderStatus) => {
+    return STATUS_STEPS.findIndex((s) => s.key === st);
+  };
 
   return (
     <div className="mx-auto max-w-5xl px-4 py-6 md:px-6 space-y-6" id="order-tracker-view">
@@ -311,16 +322,16 @@ export default function OrderTracker({ orders, onUpdateOrderStatus, role }: Orde
                       return (
                         <button
                           key={ord.id}
-                          onClick={() => setSelectedOrder(ord)}
+                          onClick={() => setSelectedOrderId(ord.id)}
                           className={`w-full text-left p-3.5 rounded-xl border transition-all duration-200 space-y-1.5 ${
                             isSelected
-                              ? 'border-amber-500 bg-amber-500/10 shadow-sm dark:border-amber-500/50'
-                              : 'border-slate-200 bg-white hover:border-slate-300 dark:border-slate-800 dark:bg-slate-900 dark:hover:border-slate-700'
+                              ? 'border-[#FFCC00] bg-[#FFCC00]/10 dark:border-[#FFCC00]/50 dark:bg-[#FFCC00]/5 shadow-xs'
+                              : 'border-slate-200 bg-white hover:border-slate-300 dark:border-slate-800 dark:bg-[#121316] dark:hover:border-slate-700'
                           }`}
                         >
                           <div className="flex items-center justify-between">
                             <span className="text-xs font-black text-slate-900 dark:text-white">{ord.id}</span>
-                            <span className="text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-slate-100 text-slate-800 dark:bg-slate-800 dark:text-amber-400">
+                            <span className="text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-slate-100 text-slate-800 dark:bg-slate-800 dark:text-[#FFCC00]">
                               {statusObj?.label}
                             </span>
                           </div>
@@ -332,7 +343,7 @@ export default function OrderTracker({ orders, onUpdateOrderStatus, role }: Orde
                               <Clock className="h-3 w-3 text-slate-400" />
                               <span>{getRelativeTimeString(ord.createdAt)}</span>
                             </span>
-                            <span className="font-extrabold text-amber-600 dark:text-amber-400">{formatIDR(ord.totalAmount)}</span>
+                            <span className="font-extrabold text-amber-600 dark:text-[#FFCC00]">{formatIDR(ord.totalAmount)}</span>
                           </div>
                         </button>
                       );
@@ -347,7 +358,7 @@ export default function OrderTracker({ orders, onUpdateOrderStatus, role }: Orde
                   <OrderDetailsCard
                     order={selectedOrder}
                     role={role}
-                    onOpenInvoice={() => setActiveInvoiceOrder(selectedOrder)}
+                    onOpenInvoice={() => setActiveInvoiceOrderId(selectedOrder.id)}
                     maskPhoneNumber={maskPhoneNumber}
                     getStatusIndex={getStatusIndex}
                   />
@@ -431,7 +442,7 @@ export default function OrderTracker({ orders, onUpdateOrderStatus, role }: Orde
                   <OrderDetailsCard
                     order={verifiedOrder}
                     role={role}
-                    onOpenInvoice={() => setActiveInvoiceOrder(verifiedOrder)}
+                    onOpenInvoice={() => setActiveInvoiceOrderId(verifiedOrder.id)}
                     maskPhoneNumber={maskPhoneNumber}
                     getStatusIndex={getStatusIndex}
                   />
@@ -650,11 +661,11 @@ export default function OrderTracker({ orders, onUpdateOrderStatus, role }: Orde
                     return (
                       <button
                         key={ord.id}
-                        onClick={() => setSelectedOrder(ord)}
+                        onClick={() => setSelectedOrderId(ord.id)}
                         className={`w-full text-left p-3.5 rounded-xl border transition-all duration-200 space-y-1.5 ${
                           isSelected
-                            ? 'border-amber-500 bg-amber-500/10 shadow-sm dark:border-amber-500/50 ring-1 ring-amber-500'
-                            : 'border-slate-200 bg-white hover:border-slate-300 dark:border-slate-800 dark:bg-slate-900 dark:hover:border-slate-700'
+                            ? 'border-[#FFCC00] bg-[#FFCC00]/10 dark:border-[#FFCC00]/50 dark:bg-[#FFCC00]/5 shadow-xs ring-1 ring-[#FFCC00]'
+                            : 'border-slate-200 bg-white hover:border-slate-300 dark:border-slate-800 dark:bg-[#121316] dark:hover:border-slate-700'
                         }`}
                       >
                         <div className="flex items-center justify-between">
@@ -662,7 +673,7 @@ export default function OrderTracker({ orders, onUpdateOrderStatus, role }: Orde
                           <span className={`text-[10px] font-extrabold px-2 py-0.5 rounded-full ${
                             isCompleted
                               ? 'bg-emerald-500/20 text-emerald-600 dark:text-emerald-400'
-                              : 'bg-amber-500/20 text-amber-600 dark:text-amber-400'
+                              : 'bg-[#FFCC00]/20 text-amber-700 dark:text-[#FFCC00]'
                           }`}>
                             {statusObj?.label}
                           </span>
@@ -674,10 +685,10 @@ export default function OrderTracker({ orders, onUpdateOrderStatus, role }: Orde
 
                         <div className="flex items-center justify-between text-[11px] text-slate-500 pt-1 border-t border-slate-100 dark:border-slate-800/60">
                           <span className="flex items-center space-x-1 text-[10px] font-semibold text-slate-400">
-                            <Clock className="h-3 w-3 text-amber-500" />
+                            <Clock className="h-3 w-3 text-[#FFCC00]" />
                             <span>{getRelativeTimeString(ord.createdAt)}</span>
                           </span>
-                          <span className="font-extrabold text-amber-600 dark:text-amber-400">{formatIDR(ord.totalAmount)}</span>
+                          <span className="font-extrabold text-amber-600 dark:text-[#FFCC00]">{formatIDR(ord.totalAmount)}</span>
                         </div>
                       </button>
                     );
@@ -726,7 +737,7 @@ export default function OrderTracker({ orders, onUpdateOrderStatus, role }: Orde
                   <OrderDetailsCard
                     order={selectedOrder}
                     role={role}
-                    onOpenInvoice={() => setActiveInvoiceOrder(selectedOrder)}
+                    onOpenInvoice={() => setActiveInvoiceOrderId(selectedOrder.id)}
                     maskPhoneNumber={maskPhoneNumber}
                     getStatusIndex={getStatusIndex}
                   />
@@ -746,7 +757,7 @@ export default function OrderTracker({ orders, onUpdateOrderStatus, role }: Orde
       {activeInvoiceOrder && (
         <InvoiceModal
           order={activeInvoiceOrder}
-          onClose={() => setActiveInvoiceOrder(null)}
+          onClose={() => setActiveInvoiceOrderId(null)}
           hideSensitiveData={role === 'buyer'}
         />
       )}
@@ -769,14 +780,14 @@ function OrderDetailsCard({
   getStatusIndex: (st: OrderStatus) => number;
 }) {
   return (
-    <div className="rounded-2xl border border-slate-200 bg-white dark:bg-slate-900 dark:border-slate-800 p-6 space-y-6 shadow-xs">
+    <div className="rounded-2xl border border-slate-200 bg-white dark:bg-[#121316] dark:border-white/10 p-6 space-y-6 shadow-xs">
       
       {/* Order Header */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center border-b border-slate-100 dark:border-slate-800 pb-4 gap-3">
         <div>
           <div className="flex items-center space-x-2">
             <h3 className="text-lg font-black text-slate-900 dark:text-white">{order.id}</h3>
-            <span className="text-[11px] font-extrabold px-2.5 py-1 rounded-full bg-amber-500/20 text-amber-600 dark:text-amber-400">
+            <span className="text-[11px] font-extrabold px-2.5 py-1 rounded-full bg-[#FFCC00]/20 text-amber-700 dark:text-[#FFCC00]">
               {STATUS_STEPS.find((s) => s.key === order.status)?.label}
             </span>
           </div>
@@ -790,9 +801,9 @@ function OrderDetailsCard({
 
         <button
           onClick={onOpenInvoice}
-          className="flex items-center space-x-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white dark:bg-slate-800 dark:hover:bg-slate-700 px-3.5 py-2 text-xs font-bold transition shadow-xs"
+          className="flex items-center space-x-1.5 rounded-xl bg-slate-900 hover:bg-slate-850 text-white dark:bg-white dark:hover:bg-slate-100 dark:text-slate-950 px-3.5 py-2 text-xs font-bold transition shadow-xs"
         >
-          <FileText className="h-4 w-4 text-amber-400" />
+          <FileText className="h-4 w-4 text-[#FFCC00] dark:text-amber-600" />
           <span>Cetak / Lihat Nota</span>
         </button>
       </div>
@@ -815,7 +826,7 @@ function OrderDetailsCard({
                 <div
                   className={`absolute -left-[25px] top-0.5 h-6 w-6 rounded-full flex items-center justify-center text-xs font-extrabold transition-all duration-300 ${
                     isCurrent
-                      ? 'bg-amber-500 text-slate-950 ring-4 ring-amber-500/30 scale-110'
+                      ? 'bg-[#FFCC00] text-slate-950 ring-4 ring-[#FFCC00]/30 scale-110'
                       : isDone
                       ? 'bg-emerald-500 text-white'
                       : 'bg-slate-200 text-slate-500 dark:bg-slate-800 dark:text-slate-600'
@@ -827,7 +838,7 @@ function OrderDetailsCard({
                 <div className="flex items-center space-x-2">
                   <h5 className={`text-sm font-extrabold ${
                     isCurrent
-                      ? 'text-amber-600 dark:text-amber-400'
+                      ? 'text-amber-600 dark:text-[#FFCC00]'
                       : isDone
                       ? 'text-slate-900 dark:text-white'
                       : 'text-slate-400 dark:text-slate-600'
@@ -835,7 +846,7 @@ function OrderDetailsCard({
                     {step.label}
                   </h5>
                   {isCurrent && (
-                    <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-amber-500/20 text-amber-600 dark:text-amber-400 animate-pulse">
+                    <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-[#FFCC00]/20 text-amber-700 dark:text-[#FFCC00] animate-pulse">
                       Sedang Berlangsung
                     </span>
                   )}

@@ -1,6 +1,6 @@
 {
-  "name": "CetakInstan - Katalog & Kalkulator Percetakan",
-  "description": "Aplikasi katalog, kalkulator harga custom cetak real-time, dan pemesanan jasa percetakan online langsung terintegrasi WhatsApp.",
+  "name": "vosprint - Digital Printing & Percetakan Online",
+  "description": "Platform resmi percetakan digital vosprint: kalkulator harga instan, katalog produk custom, dan pemesanan cetak terintegrasi.",
   "requestFramePermissions": [],
   "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
 }

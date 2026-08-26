@@ -1,0 +1,17 @@
+<svg width="512" height="512" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Sinar Putih Fanning / Crown (Gambar 1) -->
+  <g fill="#FFFFFF">
+    <!-- Far-Left Beam -->
+    <polygon points="68,90 128,90 220,380 166,380" />
+    <!-- Mid-Left Beam -->
+    <polygon points="160,54 212,54 246,380 204,380" />
+    <!-- Center Vertical Beam -->
+    <polygon points="240,30 272,30 266,380 246,380" />
+    <!-- Mid-Right Beam -->
+    <polygon points="300,54 352,54 308,380 266,380" />
+    <!-- Far-Right Beam -->
+    <polygon points="384,90 444,90 346,380 292,380" />
+  </g>
+  <!-- Segitiga Emas Kuning Bawah (Gambar 1) -->
+  <polygon points="134,400 378,400 256,500" fill="#FBAB00" />
+</svg>

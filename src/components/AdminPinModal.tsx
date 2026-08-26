@@ -4,7 +4,8 @@
  */
 
 import React, { useState, useEffect } from 'react';
-import { Lock, X, ShieldCheck, AlertCircle, Eye, EyeOff, ShieldAlert, CheckCircle2 } from 'lucide-react';
+import { Lock, X, ShieldCheck, AlertCircle, Eye, EyeOff, ShieldAlert, CheckCircle2, Loader2, KeyRound } from 'lucide-react';
+import { loginAdmin } from '../utils/adminAuth';
 
 export interface BlockedClient {
   id: string;
@@ -26,6 +27,7 @@ export default function AdminPinModal({ isOpen, onClose, onSuccess }: AdminPinMo
   const [error, setError] = useState<string>('');
   const [failedCount, setFailedCount] = useState<number>(0);
   const [isBlocked, setIsBlocked] = useState<boolean>(false);
+  const [isLoading, setIsLoading] = useState<boolean>(false);
 
   // Check blocked status on load
   useEffect(() => {
@@ -40,13 +42,15 @@ export default function AdminPinModal({ isOpen, onClose, onSuccess }: AdminPinMo
         setIsBlocked(false);
         setFailedCount(attempts);
       }
+      setPinInput('');
+      setError('');
     }
   }, [isOpen]);
 
   if (!isOpen) return null;
 
-  // PIN Submit Handler
-  const handlePinSubmit = (e: React.FormEvent) => {
+  // PIN Submit Handler via Server-Side API
+  const handlePinSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
 
@@ -55,50 +59,48 @@ export default function AdminPinModal({ isOpen, onClose, onSuccess }: AdminPinMo
       return;
     }
 
-    const savedPin = localStorage.getItem('cetakinstan_admin_pin') || '2457';
+    if (!pinInput.trim()) {
+      setError('PIN tidak boleh kosong.');
+      return;
+    }
 
-    if (pinInput.trim() === savedPin || pinInput.trim() === '1234') {
-      // Success! Reset failed attempts
-      localStorage.setItem('cetakinstan_failed_pin_attempts', '0');
-      localStorage.setItem('cetakinstan_is_blocked_moderator', 'false');
-      setFailedCount(0);
-      setIsBlocked(false);
-      onSuccess();
-      resetAndClose();
-    } else {
-      const newCount = failedCount + 1;
-      setFailedCount(newCount);
-      localStorage.setItem('cetakinstan_failed_pin_attempts', newCount.toString());
+    setIsLoading(true);
 
-      if (newCount >= 3) {
-        // Block Moderator Login
-        setIsBlocked(true);
-        localStorage.setItem('cetakinstan_is_blocked_moderator', 'true');
+    try {
+      const result = await loginAdmin(pinInput.trim());
 
-        // Record into blocked clients list
-        const clientList: BlockedClient[] = JSON.parse(localStorage.getItem('cetakinstan_blocked_clients') || '[]');
-        const clientId = 'PERANGKAT-' + Math.floor(1000 + Math.random() * 9000);
-        const newRecord: BlockedClient = {
-          id: clientId,
-          ipAlias: 'Sesi Browser (IP: 180.252.' + Math.floor(100 + Math.random() * 899) + ')',
-          failedCount: newCount,
-          blockedAt: new Date().toLocaleString('id-ID', { dateStyle: 'medium', timeStyle: 'short' }),
-          isBlocked: true
-        };
-        clientList.unshift(newRecord);
-        localStorage.setItem('cetakinstan_blocked_clients', JSON.stringify(clientList));
-
-        setError('PIN Salah 3x! Akses login Moderator diblokir. Anda tetap dapat menggunakan website dalam Mode Spectator.');
+      if (result.success) {
+        // Success! Reset failed attempts
+        setFailedCount(0);
+        setIsBlocked(false);
+        onSuccess();
+        resetAndClose();
       } else {
-        const remaining = 3 - newCount;
-        setError(`PIN Salah! Sisa percobaan login Moderator: ${remaining}x lagi.`);
+        if (result.isBlocked) {
+          setIsBlocked(true);
+          setFailedCount(3);
+          localStorage.setItem('cetakinstan_is_blocked_moderator', 'true');
+          localStorage.setItem('cetakinstan_failed_pin_attempts', '3');
+          setError(result.message || 'PIN Salah 3x! Akses login Moderator diblokir.');
+        } else {
+          const remaining = result.remainingAttempts ?? Math.max(0, 3 - (failedCount + 1));
+          const newFailed = 3 - remaining;
+          setFailedCount(newFailed);
+          localStorage.setItem('cetakinstan_failed_pin_attempts', newFailed.toString());
+          setError(result.message || `PIN Salah! Sisa percobaan login: ${remaining}x lagi.`);
+        }
       }
+    } catch (err: any) {
+      setError(err?.message || 'Terjadi kesalahan sistem saat verifikasi PIN.');
+    } finally {
+      setIsLoading(false);
     }
   };
 
   const resetAndClose = () => {
     setPinInput('');
     setError('');
+    setIsLoading(false);
     onClose();
   };
 
@@ -127,7 +129,7 @@ export default function AdminPinModal({ isOpen, onClose, onSuccess }: AdminPinMo
             Portal Khusus Pengelola
           </h3>
           <p className="text-xs text-slate-500 dark:text-slate-400">
-            Akses terbatas khusus Owner & Moderator toko.
+            Akses server-side terproteksi khusus Owner & Moderator toko.
           </p>
         </div>
 
@@ -140,7 +142,7 @@ export default function AdminPinModal({ isOpen, onClose, onSuccess }: AdminPinMo
                 <span>AKSES MODERATOR TERBLOKIR</span>
               </div>
               <p className="text-xs text-slate-700 dark:text-slate-300 leading-relaxed">
-                Anda telah memasukkan PIN yang salah sebanyak <strong>3 kali</strong>. Akses masuk ke Mode Moderator untuk perangkat ini diblokir.
+                Anda telah memasukkan PIN yang salah sebanyak <strong>3 kali</strong>. Sistem keamanan server telah memblokir akses login perangkat ini untuk mencegah brute force.
               </p>
               <div className="p-2 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-[11px] font-semibold text-emerald-600 dark:text-emerald-400 flex items-center justify-center space-x-1">
                 <CheckCircle2 className="h-3.5 w-3.5" />
@@ -149,7 +151,7 @@ export default function AdminPinModal({ isOpen, onClose, onSuccess }: AdminPinMo
             </div>
 
             <p className="text-[11px] text-center text-slate-500 dark:text-slate-400">
-              Hubungi Owner / Moderator Toko untuk membuka status blokir dari panel pengelola.
+              Buka status blokir melalui panel keamanan pengelola atau hubungi Administrator.
             </p>
 
             <button
@@ -181,11 +183,13 @@ export default function AdminPinModal({ isOpen, onClose, onSuccess }: AdminPinMo
                   onChange={(e) => setPinInput(e.target.value)}
                   placeholder="••••••••"
                   autoFocus
-                  className="w-full rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-950 p-3.5 pr-10 text-center text-xl font-black tracking-widest text-slate-900 dark:text-white focus:border-amber-500 focus:outline-none"
+                  disabled={isLoading}
+                  className="w-full rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-950 p-3.5 pr-10 text-center text-xl font-black tracking-widest text-slate-900 dark:text-white focus:border-amber-500 focus:outline-none disabled:opacity-50"
                 />
                 <button
                   type="button"
                   onClick={() => setShowPin(!showPin)}
+                  disabled={isLoading}
                   className="absolute right-3 top-3.5 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"
                 >
                   {showPin ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
@@ -202,10 +206,20 @@ export default function AdminPinModal({ isOpen, onClose, onSuccess }: AdminPinMo
 
             <button
               type="submit"
-              className="w-full rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-xs py-3.5 transition shadow-md flex items-center justify-center space-x-2"
+              disabled={isLoading}
+              className="w-full rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-xs py-3.5 transition shadow-md flex items-center justify-center space-x-2 disabled:opacity-50"
             >
-              <ShieldCheck className="h-4 w-4" />
-              <span>Verifikasi & Masuk Mode Moderator</span>
+              {isLoading ? (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  <span>Memverifikasi ke Server...</span>
+                </>
+              ) : (
+                <>
+                  <ShieldCheck className="h-4 w-4" />
+                  <span>Verifikasi & Masuk Mode Moderator</span>
+                </>
+              )}
             </button>
           </form>
         )}

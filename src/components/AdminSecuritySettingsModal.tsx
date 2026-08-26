@@ -4,8 +4,9 @@
  */
 
 import React, { useState, useEffect } from 'react';
-import { Shield, X, KeyRound, AlertCircle, Eye, EyeOff, ShieldAlert, CheckCircle2, Unlock, UserX } from 'lucide-react';
+import { Shield, X, KeyRound, AlertCircle, Eye, EyeOff, ShieldAlert, CheckCircle2, Unlock, UserX, Loader2, RefreshCw } from 'lucide-react';
 import { BlockedClient } from './AdminPinModal';
+import { changeAdminPin, getSecurityStatus, unblockDevice } from '../utils/adminAuth';
 
 interface AdminSecuritySettingsModalProps {
   isOpen: boolean;
@@ -18,49 +19,52 @@ export default function AdminSecuritySettingsModal({
   onClose,
   onSaveToast
 }: AdminSecuritySettingsModalProps) {
-  const currentSavedPin = localStorage.getItem('cetakinstan_admin_pin') || '2457';
-
-  const [activeTab, setActiveTab] = useState<'pin' | 'blocked_list'>('pin');
+  const [activeTab, setActiveTab] = useState<'pin' | 'blocked_list' | 'overview'>('pin');
   const [currentPinInput, setCurrentPinInput] = useState<string>('');
   const [newPin, setNewPin] = useState<string>('');
   const [confirmPin, setConfirmPin] = useState<string>('');
   const [showPin, setShowPin] = useState<boolean>(false);
   const [error, setError] = useState<string>('');
+  const [isLoading, setIsLoading] = useState<boolean>(false);
 
   // Blocked Clients List State
   const [blockedList, setBlockedList] = useState<BlockedClient[]>([]);
+  const [securityOverview, setSecurityOverview] = useState<{ isDefaultPin: boolean; securityLevel: string; lastUpdated: string } | null>(null);
 
   useEffect(() => {
     if (isOpen) {
-      loadBlockedList();
+      loadSecurityData();
     }
   }, [isOpen]);
 
-  const loadBlockedList = () => {
-    const saved = localStorage.getItem('cetakinstan_blocked_clients');
-    if (saved) {
-      try {
-        setBlockedList(JSON.parse(saved));
-      } catch (e) {
-        setBlockedList([]);
+  const loadSecurityData = async () => {
+    try {
+      const status = await getSecurityStatus();
+      if (status) {
+        setBlockedList(status.blockedDevices || []);
+        setSecurityOverview({
+          isDefaultPin: status.isDefaultPin,
+          securityLevel: status.securityLevel,
+          lastUpdated: status.lastUpdated
+        });
+      } else {
+        // Fallback local
+        const saved = localStorage.getItem('cetakinstan_blocked_clients');
+        if (saved) {
+          setBlockedList(JSON.parse(saved));
+        }
       }
-    } else {
-      setBlockedList([]);
+    } catch (e) {
+      // ignore
     }
   };
 
   if (!isOpen) return null;
 
   // Save new PIN handler
-  const handleSavePin = (e: React.FormEvent) => {
+  const handleSavePin = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
-
-    // Verify Current PIN
-    if (currentPinInput.trim() !== currentSavedPin && currentPinInput.trim() !== '1234') {
-      setError('PIN Admin Saat Ini (Lama) tidak cocok.');
-      return;
-    }
 
     if (!newPin.trim() || newPin.trim().length < 4) {
       setError('PIN Admin Baru minimal harus 4 karakter/digit.');
@@ -72,39 +76,42 @@ export default function AdminSecuritySettingsModal({
       return;
     }
 
-    // Save new PIN to localStorage
-    localStorage.setItem('cetakinstan_admin_pin', newPin.trim());
+    setIsLoading(true);
 
-    onSaveToast('PIN Keamanan Admin Berhasil Diperbarui!', 'success');
-    resetAndClose();
+    try {
+      const res = await changeAdminPin(currentPinInput.trim(), newPin.trim());
+      if (res.success) {
+        onSaveToast(res.message || 'PIN Keamanan Admin Berhasil Diperbarui!', 'success');
+        resetAndClose();
+      } else {
+        setError(res.message || 'Gagal memperbarui PIN.');
+      }
+    } catch (err: any) {
+      setError(err?.message || 'Terjadi kesalahan sistem saat menyimpan PIN.');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   // Unblock a client
-  const handleUnblockClient = (id: string) => {
-    // 1. Reset current device block flags if it matches
+  const handleUnblockClient = async (id: string) => {
     localStorage.setItem('cetakinstan_failed_pin_attempts', '0');
     localStorage.setItem('cetakinstan_is_blocked_moderator', 'false');
 
-    // 2. Update list
-    const updated = blockedList.map(item => {
-      if (item.id === id) {
-        return { ...item, isBlocked: false };
-      }
-      return item;
-    });
-
-    setBlockedList(updated);
-    localStorage.setItem('cetakinstan_blocked_clients', JSON.stringify(updated));
-    onSaveToast('Akses login berhasil dibuka kembali!', 'success');
+    await unblockDevice(id);
+    await loadSecurityData();
+    onSaveToast('Akses login perangkat berhasil dibuka kembali!', 'success');
   };
 
   // Clear all blocks
-  const handleUnblockAll = () => {
+  const handleUnblockAll = async () => {
     localStorage.setItem('cetakinstan_failed_pin_attempts', '0');
     localStorage.setItem('cetakinstan_is_blocked_moderator', 'false');
     localStorage.setItem('cetakinstan_blocked_clients', '[]');
-    setBlockedList([]);
-    onSaveToast('Semua status blokir akses telah dibersihkan!', 'success');
+
+    await unblockDevice();
+    await loadSecurityData();
+    onSaveToast('Semua status blokir akses telah dibersihkan di server!', 'success');
   };
 
   const resetAndClose = () => {
@@ -112,6 +119,7 @@ export default function AdminSecuritySettingsModal({
     setNewPin('');
     setConfirmPin('');
     setError('');
+    setIsLoading(false);
     setActiveTab('pin');
     onClose();
   };
@@ -140,7 +148,7 @@ export default function AdminSecuritySettingsModal({
               Keamanan & Kontrol Akses Admin
             </h3>
             <p className="text-xs text-slate-500 dark:text-slate-400">
-              Ubah PIN & Kelola Akses Terblokir
+              Proteksi Server PBKDF2-SHA512 & HMAC Session
             </p>
           </div>
         </div>
@@ -155,7 +163,7 @@ export default function AdminSecuritySettingsModal({
                 : 'text-slate-500 hover:text-slate-900 dark:hover:text-white'
             }`}
           >
-            Ubah PIN Admin
+            Ubah PIN
           </button>
           <button
             onClick={() => setActiveTab('blocked_list')}
@@ -171,6 +179,16 @@ export default function AdminSecuritySettingsModal({
                 {activeBlockedCount}
               </span>
             )}
+          </button>
+          <button
+            onClick={() => setActiveTab('overview')}
+            className={`py-2 px-3 text-xs font-bold rounded-lg transition flex items-center justify-center ${
+              activeTab === 'overview'
+                ? 'bg-white dark:bg-slate-900 text-slate-900 dark:text-white shadow-xs'
+                : 'text-slate-500 hover:text-slate-900 dark:hover:text-white'
+            }`}
+          >
+            Status
           </button>
         </div>
 
@@ -189,7 +207,8 @@ export default function AdminSecuritySettingsModal({
                   onChange={(e) => setCurrentPinInput(e.target.value)}
                   placeholder="Masukkan PIN lama..."
                   autoFocus
-                  className="w-full rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-950 p-3 pr-10 text-sm font-bold text-slate-900 dark:text-white focus:border-amber-500 focus:outline-none"
+                  disabled={isLoading}
+                  className="w-full rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-950 p-3 pr-10 text-sm font-bold text-slate-900 dark:text-white focus:border-amber-500 focus:outline-none disabled:opacity-50"
                 />
                 <button
                   type="button"
@@ -211,7 +230,8 @@ export default function AdminSecuritySettingsModal({
                 value={newPin}
                 onChange={(e) => setNewPin(e.target.value)}
                 placeholder="Masukkan PIN baru..."
-                className="w-full rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-950 p-3 text-sm font-bold text-slate-900 dark:text-white focus:border-amber-500 focus:outline-none"
+                disabled={isLoading}
+                className="w-full rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-950 p-3 text-sm font-bold text-slate-900 dark:text-white focus:border-amber-500 focus:outline-none disabled:opacity-50"
               />
             </div>
 
@@ -225,7 +245,8 @@ export default function AdminSecuritySettingsModal({
                 value={confirmPin}
                 onChange={(e) => setConfirmPin(e.target.value)}
                 placeholder="Ketik ulang PIN baru..."
-                className="w-full rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-950 p-3 text-sm font-bold text-slate-900 dark:text-white focus:border-amber-500 focus:outline-none"
+                disabled={isLoading}
+                className="w-full rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-950 p-3 text-sm font-bold text-slate-900 dark:text-white focus:border-amber-500 focus:outline-none disabled:opacity-50"
               />
             </div>
 
@@ -238,10 +259,20 @@ export default function AdminSecuritySettingsModal({
 
             <button
               type="submit"
-              className="w-full rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-xs py-3.5 transition shadow-md flex items-center justify-center space-x-2"
+              disabled={isLoading}
+              className="w-full rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-xs py-3.5 transition shadow-md flex items-center justify-center space-x-2 disabled:opacity-50"
             >
-              <KeyRound className="h-4 w-4" />
-              <span>Simpan & Aktifkan PIN Baru</span>
+              {isLoading ? (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  <span>Mengenkripsi & Menyimpan di Server...</span>
+                </>
+              ) : (
+                <>
+                  <KeyRound className="h-4 w-4" />
+                  <span>Simpan & Aktifkan PIN Baru</span>
+                </>
+              )}
             </button>
           </form>
         )}
@@ -319,6 +350,36 @@ export default function AdminSecuritySettingsModal({
                 ))}
               </div>
             )}
+          </div>
+        )}
+
+        {/* TAB 3: SECURITY OVERVIEW */}
+        {activeTab === 'overview' && (
+          <div className="space-y-3">
+            <div className="p-3.5 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 space-y-2">
+              <div className="flex items-center justify-between text-xs">
+                <span className="text-slate-500 dark:text-slate-400 font-semibold">Tingkat Enkripsi:</span>
+                <span className="font-bold text-emerald-500">PBKDF2-SHA512 + Pepper</span>
+              </div>
+              <div className="flex items-center justify-between text-xs">
+                <span className="text-slate-500 dark:text-slate-400 font-semibold">Token Sesi:</span>
+                <span className="font-bold text-slate-800 dark:text-slate-200">HMAC-SHA256 (24 Jam)</span>
+              </div>
+              <div className="flex items-center justify-between text-xs">
+                <span className="text-slate-500 dark:text-slate-400 font-semibold">Status PIN Default:</span>
+                <span className={`font-bold ${securityOverview?.isDefaultPin ? 'text-amber-500' : 'text-emerald-500'}`}>
+                  {securityOverview?.isDefaultPin ? 'Masih Default (Disarankan Diubah)' : 'Telah Dikustomisasi'}
+                </span>
+              </div>
+            </div>
+
+            <button
+              onClick={loadSecurityData}
+              className="w-full py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-xs font-bold text-slate-700 dark:text-slate-300 transition flex items-center justify-center space-x-1.5"
+            >
+              <RefreshCw className="h-3.5 w-3.5" />
+              <span>Refresh Status Keamanan</span>
+            </button>
           </div>
         )}
 

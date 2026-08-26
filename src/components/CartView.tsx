@@ -40,6 +40,7 @@ export default function CartView({
 
   const [formError, setFormError] = useState<string>('');
   const [itemPendingDelete, setItemPendingDelete] = useState<string | null>(null);
+  const [showClearCartConfirm, setShowClearCartConfirm] = useState<boolean>(false);
 
   // Simpan info pemesan ke local storage agar user tidak capek ketik ulang
   useEffect(() => {
@@ -140,7 +141,7 @@ export default function CartView({
     message += `📑 *NO. NOTA PESANAN: ${newOrder.id}*\n`;
     message += `💰 *TOTAL BIAYA: ${formatIDR(totalCartPrice)}*\n`;
     message += `=============================\n\n`;
-    message += `_Mohon diproses pesanannya ya Admin CetakInstan, file desain siap cetak sudah dilampirkan atau akan dikoordinasikan. Terima kasih!_`;
+    message += `_Mohon diproses pesanannya ya Admin vosprint, file desain siap cetak sudah dilampirkan atau akan dikoordinasikan. Terima kasih!_`;
 
     // Encode URL
     const targetPhone = WHATSAPP_NUMBER_DEFAULT; 
@@ -177,9 +178,10 @@ export default function CartView({
           <div className="flex items-center justify-between border-b border-slate-200 pb-2">
             <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Item Cetakan</span>
             <button
+              type="button"
               id="clear-cart-btn"
-              onClick={onClearCart}
-              className="text-[10px] font-bold text-rose-500 hover:text-rose-700 hover:underline transition"
+              onClick={() => setShowClearCartConfirm(true)}
+              className="text-[10px] font-bold text-rose-500 hover:text-rose-700 hover:underline transition cursor-pointer"
             >
               Hapus Semua
             </button>
@@ -198,6 +200,7 @@ export default function CartView({
                   <p className="text-[10px] text-slate-400 font-medium mt-0.5">Bahan: <span className="text-slate-600 dark:text-slate-300 font-semibold">{item.material.name}</span></p>
                 </div>
                 <button
+                  type="button"
                   id={`remove-cart-item-${item.id}`}
                   onClick={() => setItemPendingDelete(item.id)}
                   className="rounded-lg p-1 text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-900 hover:text-rose-500 transition"
@@ -436,6 +439,44 @@ export default function CartView({
     );
   };
 
+  const renderClearCartConfirmModal = () => {
+    if (!showClearCartConfirm) return null;
+    return (
+      <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/60 backdrop-blur-xs p-4 animate-fade-in" id="clear-cart-confirm-overlay">
+        <div className="w-full max-w-sm bg-white dark:bg-slate-800 rounded-2xl shadow-2xl p-5 space-y-4 border border-slate-200 dark:border-slate-750 text-slate-800 dark:text-slate-100 animate-slide-up">
+          <div className="flex items-center space-x-3 text-red-500">
+            <AlertCircle className="h-6 w-6 shrink-0" />
+            <h3 className="text-base font-bold">Kosongkan Keranjang?</h3>
+          </div>
+          <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
+            Apakah Anda yakin ingin menghapus semua item dari keranjang belanja Anda? Tindakan ini tidak dapat dibatalkan.
+          </p>
+          <div className="flex items-center justify-end space-x-2 pt-2">
+            <button
+              type="button"
+              id="cancel-clear-cart-btn"
+              onClick={() => setShowClearCartConfirm(false)}
+              className="rounded-lg border border-slate-200 dark:border-slate-700 px-3.5 py-2 text-xs font-semibold hover:bg-slate-55 dark:hover:bg-slate-900 transition"
+            >
+              Batal
+            </button>
+            <button
+              type="button"
+              id="confirm-clear-cart-btn"
+              onClick={() => {
+                onClearCart();
+                setShowClearCartConfirm(false);
+              }}
+              className="rounded-lg bg-red-600 hover:bg-red-500 text-white px-3.5 py-2 text-xs font-bold shadow-sm transition"
+            >
+              Ya, Kosongkan
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
   // 3. Render layout based on Drawer vs Tab Dashboard
   if (isDrawer) {
     return (
@@ -474,6 +515,7 @@ export default function CartView({
           </div>
         </div>
         {renderDeleteConfirmModal()}
+        {renderClearCartConfirmModal()}
       </>
     );
   }
@@ -495,6 +537,7 @@ export default function CartView({
         </div>
       </div>
       {renderDeleteConfirmModal()}
+      {renderClearCartConfirmModal()}
     </>
   );
 }
